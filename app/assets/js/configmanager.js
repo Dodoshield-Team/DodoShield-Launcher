@@ -383,7 +383,7 @@ exports.updateMicrosoftAuthAccount = function(uuid, accessToken, msAccessToken, 
  * 
  * @returns {Object} The authenticated account object created by this action.
  */
-exports.addMicrosoftAuthAccount = function(uuid, accessToken, name, mcExpires, msAccessToken, msRefreshToken, msExpires) {
+exports.addMicrosoftAuthAccount = function(uuid, accessToken, name, mcExpires, msAccessToken, msRefreshToken, msExpires, msClientId) {
     config.selectedAccount = uuid
     config.authenticationDatabase[uuid] = {
         type: 'microsoft',
@@ -395,7 +395,9 @@ exports.addMicrosoftAuthAccount = function(uuid, accessToken, name, mcExpires, m
         microsoft: {
             access_token: msAccessToken,
             refresh_token: msRefreshToken,
-            expires_at: msExpires
+            expires_at: msExpires,
+            // Azure client id the refresh token belongs to (refresh must reuse it).
+            client_id: msClientId
         }
     }
     return config.authenticationDatabase[uuid]

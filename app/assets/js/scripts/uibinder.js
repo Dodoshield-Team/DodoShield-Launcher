@@ -62,9 +62,13 @@ async function showMainUI(data){
     if(!isDev){
         loggerAutoUpdater.info('Initializing..')
         ipcRenderer.send('autoUpdateAction', 'initAutoUpdater', ConfigManager.getAllowPrerelease())
+        // Mandatory update: stay on the loading screen until the startup check is done.
+        await waitForStartupUpdateGate()
+        setLoadingStatus('')
     }
 
     await prepareSettings(true)
+    renderPackTabs(data)
     updateSelectedServer(data.getServerById(ConfigManager.getSelectedServer()))
     refreshServerStatus()
     setTimeout(() => {
@@ -133,6 +137,7 @@ function showFatalStartupError(){
  * @param {Object} data The distro index object.
  */
 function onDistroRefresh(data){
+    renderPackTabs(data)
     updateSelectedServer(data.getServerById(ConfigManager.getSelectedServer()))
     refreshServerStatus()
     initNews()

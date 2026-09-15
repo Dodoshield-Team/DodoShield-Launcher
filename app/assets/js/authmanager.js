@@ -15,6 +15,7 @@ const { RestResponseStatus } = require('helios-core/common')
 const { MojangRestAPI, MojangErrorCode } = require('helios-core/mojang')
 const { MicrosoftAuth, MicrosoftErrorCode } = require('helios-core/microsoft')
 const { AZURE_CLIENT_ID }    = require('./ipcconstants')
+const got                    = require('got')
 const Lang = require('./langloader')
 
 const log = LoggerUtil.getLogger('AuthManager')
@@ -180,13 +181,48 @@ const AUTH_MODE = { FULL: 0, MS_REFRESH: 1, MC_REFRESH: 2 }
  * @param {*} authMode The auth mode.
  * @returns An object with all auth data. AccessToken object will be null when mode is MC_REFRESH.
  */
-async function fullMicrosoftAuthFlow(entryCode, authMode) {
+/**
+ * Exchange an authorization code for tokens. helios-core hardcodes the nativeclient
+ * redirect_uri, but the token request must repeat the loopback redirect_uri that the
+ * browser-based sign-in used, so the exchange is done here.
+ */
+async function exchangeAuthCode(code, redirectUri, clientId) {
+    try {
+        const res = await got.post(MicrosoftAuth.TOKEN_ENDPOINT, {
+            form: {
+                client_id: clientId,
+                scope: 'XboxLive.signin offline_access',
+                redirect_uri: redirectUri,
+                code,
+                grant_type: 'authorization_code'
+            },
+            responseType: 'json'
+        })
+        return { responseStatus: RestResponseStatus.SUCCESS, data: res.body }
+    } catch (error) {
+        log.error('Auth code exchange failed', error.response ? error.response.body : error)
+        return { responseStatus: RestResponseStatus.ERROR, microsoftErrorCode: MicrosoftErrorCode.UNKNOWN }
+    }
+}
+
+async function fullMicrosoftAuthFlow(entryCode, authMode, redirectUri, clientId = AZURE_CLIENT_ID) {
+    // Tokens issued to the DodoShield (browser) client id are only useful for the
+    // Minecraft API once Mojang approves that id. If that step fails, tell the caller
+    // so it can retry with the embedded flow and the approved Helios id.
+    const browserClient = clientId !== AZURE_CLIENT_ID
+    const rejectMc = (code) => {
+        const err = microsoftErrorDisplayable(code)
+        if(browserClient && authMode === AUTH_MODE.FULL) err.fallbackEmbedded = true
+        return Promise.reject(err)
+    }
     try {
 
         let accessTokenRaw
         let accessToken
         if(authMode !== AUTH_MODE.MC_REFRESH) {
-            const accessTokenResponse = await MicrosoftAuth.getAccessToken(entryCode, authMode === AUTH_MODE.MS_REFRESH, AZURE_CLIENT_ID)
+            const accessTokenResponse = (authMode === AUTH_MODE.FULL && redirectUri)
+                ? await exchangeAuthCode(entryCode, redirectUri, clientId)
+                : await MicrosoftAuth.getAccessToken(entryCode, authMode === AUTH_MODE.MS_REFRESH, clientId)
             if(accessTokenResponse.responseStatus === RestResponseStatus.ERROR) {
                 return Promise.reject(microsoftErrorDisplayable(accessTokenResponse.microsoftErrorCode))
             }
@@ -206,11 +242,11 @@ async function fullMicrosoftAuthFlow(entryCode, authMode) {
         }
         const mcTokenResponse = await MicrosoftAuth.getMCAccessToken(xstsResonse.data)
         if(mcTokenResponse.responseStatus === RestResponseStatus.ERROR) {
-            return Promise.reject(microsoftErrorDisplayable(mcTokenResponse.microsoftErrorCode))
+            return rejectMc(mcTokenResponse.microsoftErrorCode)
         }
         const mcProfileResponse = await MicrosoftAuth.getMCProfile(mcTokenResponse.data.access_token)
         if(mcProfileResponse.responseStatus === RestResponseStatus.ERROR) {
-            return Promise.reject(microsoftErrorDisplayable(mcProfileResponse.microsoftErrorCode))
+            return rejectMc(mcProfileResponse.microsoftErrorCode)
         }
         return {
             accessToken,
@@ -245,9 +281,9 @@ function calculateExpiryDate(nowMs, epiresInS) {
  * @param {string} authCode The authCode obtained from microsoft.
  * @returns {Promise.<Object>} Promise which resolves the resolved authenticated account object.
  */
-exports.addMicrosoftAccount = async function(authCode) {
+exports.addMicrosoftAccount = async function(authCode, redirectUri, clientId = AZURE_CLIENT_ID) {
 
-    const fullAuth = await fullMicrosoftAuthFlow(authCode, AUTH_MODE.FULL)
+    const fullAuth = await fullMicrosoftAuthFlow(authCode, AUTH_MODE.FULL, redirectUri, clientId)
 
     // Advance expiry by 10 seconds to avoid close calls.
     const now = new Date().getTime()
@@ -259,7 +295,8 @@ exports.addMicrosoftAccount = async function(authCode) {
         calculateExpiryDate(now, fullAuth.mcToken.expires_in),
         fullAuth.accessToken.access_token,
         fullAuth.accessToken.refresh_token,
-        calculateExpiryDate(now, fullAuth.accessToken.expires_in)
+        calculateExpiryDate(now, fullAuth.accessToken.expires_in),
+        clientId
     )
     ConfigManager.save()
 
@@ -370,7 +407,7 @@ async function validateSelectedMicrosoftAccount(){
     if(msExpired) {
         // MS expired, do full refresh.
         try {
-            const res = await fullMicrosoftAuthFlow(current.microsoft.refresh_token, AUTH_MODE.MS_REFRESH)
+            const res = await fullMicrosoftAuthFlow(current.microsoft.refresh_token, AUTH_MODE.MS_REFRESH, null, current.microsoft.client_id || AZURE_CLIENT_ID)
 
             ConfigManager.updateMicrosoftAuthAccount(
                 current.uuid,

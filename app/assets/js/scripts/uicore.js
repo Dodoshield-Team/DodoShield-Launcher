@@ -35,6 +35,33 @@ remote.getCurrentWebContents().on('devtools-opened', () => {
 webFrame.setZoomLevel(0)
 webFrame.setVisualZoomLevelLimits(1, 1)
 
+// Mandatory startup update gate.
+// The main UI is held back on the loading screen until the first update check finishes.
+// If an update exists it is downloaded, installed and the launcher relaunches on its own.
+// Updates found later in the session (periodic check) keep the manual "Install now" flow.
+const STARTUP_UPDATE_GATE_TIMEOUT_MS = 20000
+let startupUpdateGateOpen = true
+let resolveStartupUpdateGate
+const startupUpdateGate = new Promise(resolve => { resolveStartupUpdateGate = resolve })
+function closeStartupUpdateGate(){
+    if(startupUpdateGateOpen){
+        startupUpdateGateOpen = false
+        resolveStartupUpdateGate()
+    }
+}
+function setLoadingStatus(text){
+    const el = document.getElementById('loadStatusText')
+    if(el){ el.textContent = text || '' }
+}
+// Resolves once the startup check is done (or times out, e.g. offline).
+function waitForStartupUpdateGate(){
+    if(isDev){ return Promise.resolve() }
+    return Promise.race([
+        startupUpdateGate,
+        new Promise(resolve => setTimeout(() => { closeStartupUpdateGate(); resolve() }, STARTUP_UPDATE_GATE_TIMEOUT_MS))
+    ])
+}
+
 // Initialize auto updates in production environments.
 let updateCheckListener
 if(!isDev){
@@ -43,19 +70,31 @@ if(!isDev){
             case 'checking-for-update':
                 loggerAutoUpdater.info('Checking for update..')
                 settingsUpdateButtonStatus(Lang.queryJS('uicore.autoUpdate.checkingForUpdateButton'), true)
+                if(startupUpdateGateOpen){ setLoadingStatus(Lang.queryJS('uicore.autoUpdate.gateChecking')) }
                 break
             case 'update-available':
                 loggerAutoUpdater.info('New update available', info.version)
-                
+
                 if(process.platform === 'darwin'){
-                    info.darwindownload = `https://github.com/dscalzi/HeliosLauncher/releases/download/v${info.version}/Helios-Launcher-setup-${info.version}${process.arch === 'arm64' ? '-arm64' : '-x64'}.dmg`
+                    info.darwindownload = `https://launcher.dodoshield.com/updates/DodoShield-Launcher-setup-${info.version}${process.arch === 'arm64' ? '-arm64' : '-x64'}.dmg`
                     showUpdateUI(info)
                 }
-                
+
                 populateSettingsUpdateInformation(info)
+                if(startupUpdateGateOpen){ setLoadingStatus(Lang.queryJS('uicore.autoUpdate.gateDownloading', { version: info.version, percent: 0 })) }
+                break
+            case 'download-progress':
+                if(startupUpdateGateOpen && info != null){
+                    setLoadingStatus(Lang.queryJS('uicore.autoUpdate.gateDownloading', { version: '', percent: Math.floor(info.percent || 0) }))
+                }
                 break
             case 'update-downloaded':
                 loggerAutoUpdater.info('Update ' + info.version + ' ready to be installed.')
+                if(startupUpdateGateOpen && process.platform !== 'darwin'){
+                    setLoadingStatus(Lang.queryJS('uicore.autoUpdate.gateInstalling', { version: info.version }))
+                    ipcRenderer.send('autoUpdateAction', 'installUpdateNow')
+                    break
+                }
                 settingsUpdateButtonStatus(Lang.queryJS('uicore.autoUpdate.installNowButton'), false, () => {
                     if(!isDev){
                         ipcRenderer.send('autoUpdateAction', 'installUpdateNow')
@@ -66,6 +105,7 @@ if(!isDev){
             case 'update-not-available':
                 loggerAutoUpdater.info('No new update found.')
                 settingsUpdateButtonStatus(Lang.queryJS('uicore.autoUpdate.checkForUpdatesButton'))
+                closeStartupUpdateGate()
                 break
             case 'ready':
                 updateCheckListener = setInterval(() => {
@@ -84,6 +124,7 @@ if(!isDev){
                         loggerAutoUpdater.debug('Error Code:', info.code)
                     }
                 }
+                closeStartupUpdateGate()
                 break
             default:
                 loggerAutoUpdater.info('Unknown argument', arg)
@@ -104,26 +145,29 @@ function changeAllowPrerelease(val){
     ipcRenderer.send('autoUpdateAction', 'allowPrereleaseChange', val)
 }
 
+// An update was downloaded while the launcher is open: show a prominent
+// "update" button in the top bar and ask once whether to restart now.
+let updatePromptShown = false
 function showUpdateUI(info){
-    //TODO Make this message a bit more informative `${info.version}`
-    document.getElementById('image_seal_container').setAttribute('update', true)
-    document.getElementById('image_seal_container').onclick = () => {
-        /*setOverlayContent('Update Available', 'A new update for the launcher is available. Would you like to install now?', 'Install', 'Later')
-        setOverlayHandler(() => {
-            if(!isDev){
-                ipcRenderer.send('autoUpdateAction', 'installUpdateNow')
-            } else {
-                console.error('Cannot install updates in development environment.')
-                toggleOverlay(false)
-            }
-        })
-        setDismissHandler(() => {
-            toggleOverlay(false)
-        })
-        toggleOverlay(true, true)*/
-        switchView(getCurrentView(), VIEWS.settings, 500, 500, () => {
-            settingsNavItemListener(document.getElementById('settingsNavUpdate'), false)
-        })
+    const version = info && info.version ? info.version : ''
+    const install = () => ipcRenderer.send('autoUpdateAction', 'installUpdateNow')
+    const btn = document.getElementById('updateNowButton')
+    if(btn){
+        btn.innerHTML = Lang.queryJS('uicore.autoUpdate.updateNowButton', { version })
+        btn.style.display = 'inline-flex'
+        btn.onclick = install
+    }
+    if(!updatePromptShown && document.getElementById('landingContainer').style.display !== 'none'){
+        updatePromptShown = true
+        setOverlayContent(
+            Lang.queryJS('uicore.autoUpdate.promptTitle', { version }),
+            Lang.queryJS('uicore.autoUpdate.promptDesc'),
+            Lang.queryJS('uicore.autoUpdate.promptInstall'),
+            Lang.queryJS('uicore.autoUpdate.promptLater')
+        )
+        setOverlayHandler(install)
+        setDismissHandler(() => toggleOverlay(false))
+        toggleOverlay(true, true)
     }
 }
 
@@ -131,6 +175,22 @@ function showUpdateUI(info){
 $(function(){
     loggerUICore.info('UICore Initialized');
 })*/
+
+// Lottie loader on the startup screen (vendored lottie-web light build, no network needed).
+document.addEventListener('DOMContentLoaded', () => {
+    try {
+        const lottie = require('./assets/js/vendor/lottie_light.min.js')
+        lottie.loadAnimation({
+            container: document.getElementById('loadLottie'),
+            renderer: 'svg',
+            loop: true,
+            autoplay: true,
+            animationData: require('./assets/images/loading.json')
+        })
+    } catch (err) {
+        console.error('Failed to start loading animation', err)
+    }
+})
 
 document.addEventListener('readystatechange', function () {
     if (document.readyState === 'interactive'){

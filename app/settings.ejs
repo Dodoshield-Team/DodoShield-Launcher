@@ -134,8 +134,11 @@
             </div>
             <div id="settingsModsContainer">
                 <div id="settingsReqModsContainer">
-                    <div class="settingsModsHeader"><%- lang('settings.requiredMods') %></div>
-                    <div id="settingsReqModsContent">
+                    <div class="settingsModsHeader settingsModsHeaderCollapsible" id="settingsReqModsHeader">
+                        <span class="settingsModsHeaderArrow">&#9656;</span>
+                        <%- lang('settings.requiredMods') %> <span id="settingsReqModsCount"></span>
+                    </div>
+                    <div id="settingsReqModsContent" collapsed>
 
                     </div>
                 </div>

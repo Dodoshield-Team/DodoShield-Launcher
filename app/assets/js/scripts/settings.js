@@ -414,13 +414,21 @@ ipcRenderer.on(MSFT_OPCODE.REPLY_LOGIN, (_, ...arguments_) => {
             msftLoginLogger.info('Acquired authCode, proceeding with authentication.')
 
             const authCode = queryMap.code
-            AuthManager.addMicrosoftAccount(authCode).then(value => {
+            AuthManager.addMicrosoftAccount(authCode, queryMap.redirect_uri, queryMap.client_id).then(value => {
                 updateSelectedAccount(value)
                 switchView(getCurrentView(), viewOnClose, 500, 500, async () => {
                     await prepareSettings()
                 })
             })
                 .catch((displayableError) => {
+
+                    if(displayableError && displayableError.fallbackEmbedded) {
+                        // Browser sign-in worked but the Minecraft API rejected our client id
+                        // (not approved by Mojang yet). Redo the login in the embedded window.
+                        msftLoginLogger.warn('DodoShield client id rejected by Minecraft API, falling back to embedded login.')
+                        ipcRenderer.send(MSFT_OPCODE.OPEN_LOGIN, queryMap.view_success, queryMap.view_close, true)
+                        return
+                    }
 
                     let actualDisplayableError
                     if(isDisplayableError(displayableError)) {
@@ -640,7 +648,7 @@ function populateAuthAccounts(){
 
         const accHtml = `<div class="settingsAuthAccount" uuid="${acc.uuid}">
             <div class="settingsAuthAccountLeft">
-                <img class="settingsAuthAccountImage" alt="${acc.displayName}" src="https://mc-heads.net/body/${acc.uuid}/60">
+                <img class="settingsAuthAccountImage" alt="${acc.displayName}" src="https://visage.surgeplay.com/full/160/${acc.uuid}">
             </div>
             <div class="settingsAuthAccountRight">
                 <div class="settingsAuthAccountDetails">
@@ -719,6 +727,7 @@ async function resolveModsForUI(){
     const modStr = parseModulesForUI(distro.getServerById(serv).modules, false, servConf.mods)
 
     document.getElementById('settingsReqModsContent').innerHTML = modStr.reqMods
+    document.getElementById('settingsReqModsCount').innerHTML = '(' + (modStr.reqMods.match(/class="settingsBaseMod/g) || []).length + ')'
     document.getElementById('settingsOptModsContent').innerHTML = modStr.optMods
 }
 
@@ -1453,7 +1462,7 @@ function populateAboutVersionInformation(){
  */
 function populateReleaseNotes(){
     $.ajax({
-        url: 'https://github.com/dscalzi/HeliosLauncher/releases.atom',
+        url: 'https://launcher.dodoshield.com/updates/releases.atom',
         success: (data) => {
             const version = 'v' + remote.app.getVersion()
             const entries = $(data).find('entry')
@@ -1581,3 +1590,17 @@ async function prepareSettings(first = false) {
 
 // Prepare the settings UI on startup.
 //prepareSettings(true)
+
+
+// The required-mods list is long (250+ entries): keep it collapsed until the header is clicked.
+document.getElementById('settingsReqModsHeader').onclick = () => {
+    const content = document.getElementById('settingsReqModsContent')
+    const header = document.getElementById('settingsReqModsHeader')
+    if(content.hasAttribute('collapsed')){
+        content.removeAttribute('collapsed')
+        header.setAttribute('expanded', '')
+    } else {
+        content.setAttribute('collapsed', '')
+        header.removeAttribute('expanded')
+    }
+}

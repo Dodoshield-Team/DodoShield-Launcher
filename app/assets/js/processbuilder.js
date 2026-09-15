@@ -372,7 +372,7 @@ class ProcessBuilder {
 
         // Java Arguments
         if(process.platform === 'darwin'){
-            args.push('-Xdock:name=HeliosLauncher')
+            args.push('-Xdock:name=DodoShieldLauncher')
             args.push('-Xdock:icon=' + path.join(__dirname, '..', 'images', 'minecraft.icns'))
         }
         args.push('-Xmx' + ConfigManager.getMaxRAM(this.server.rawServer.id))
@@ -423,7 +423,7 @@ class ProcessBuilder {
 
         // Java Arguments
         if(process.platform === 'darwin'){
-            args.push('-Xdock:name=HeliosLauncher')
+            args.push('-Xdock:name=DodoShieldLauncher')
             args.push('-Xdock:icon=' + path.join(__dirname, '..', 'images', 'minecraft.icns'))
         }
         args.push('-Xmx' + ConfigManager.getMaxRAM(this.server.rawServer.id))
@@ -525,7 +525,7 @@ class ProcessBuilder {
                             val = args[i].replace(argDiscovery, tempNativePath)
                             break
                         case 'launcher_name':
-                            val = args[i].replace(argDiscovery, 'Helios-Launcher')
+                            val = args[i].replace(argDiscovery, 'DodoShield-Launcher')
                             break
                         case 'launcher_version':
                             val = args[i].replace(argDiscovery, this.launcherVersion)
@@ -713,12 +713,36 @@ class ProcessBuilder {
      * @param {string} tempNativePath The path to store the native libraries.
      * @returns {{[id: string]: string}} An object containing the paths of each library mojang declares.
      */
+    /**
+     * Find the folder the vanilla manifest expects native libraries in.
+     * Older manifests use ${natives_directory} directly, 26.x+ append a subpath.
+     */
+    _resolveNativeOutputPath(tempNativePath){
+        const jvmArgs = this.vanillaManifest.arguments?.jvm ?? []
+        for(const arg of jvmArgs){
+            const values = typeof arg === 'string' ? [arg] : (Array.isArray(arg?.value) ? arg.value : [arg?.value])
+            for(const v of values){
+                if(typeof v !== 'string') continue
+                const prefix = '-Djava.library.path=${natives_directory}'
+                if(!v.startsWith(prefix)) continue
+                const sub = v.substring(prefix.length).replace(/^[\\/]+/, '')
+                if(sub.length > 0){
+                    return path.join(tempNativePath, sub)
+                }
+            }
+        }
+        return tempNativePath
+    }
+
     _resolveMojangLibraries(tempNativePath){
         const nativesRegex = /.+:natives-([^-]+)(?:-(.+))?/
         const libs = {}
 
         const libArr = this.vanillaManifest.libraries
-        fs.ensureDirSync(tempNativePath)
+        // 26.x+ manifests point java.library.path at a subfolder of the natives dir
+        // (e.g. ${natives_directory}/java). Extract to wherever the manifest expects them.
+        const nativeOutPath = this._resolveNativeOutputPath(tempNativePath)
+        fs.ensureDirSync(nativeOutPath)
         for(let i=0; i<libArr.length; i++){
             const lib = libArr[i]
             if(isLibraryCompatible(lib.rules, lib.natives)){
@@ -750,7 +774,7 @@ class ProcessBuilder {
 
                         // Extract the file.
                         if(!shouldExclude){
-                            fs.writeFile(path.join(tempNativePath, fileName), zipEntries[i].getData(), (err) => {
+                            fs.writeFile(path.join(nativeOutPath, fileName), zipEntries[i].getData(), (err) => {
                                 if(err){
                                     logger.error('Error while extracting native library:', err)
                                 }
@@ -801,7 +825,7 @@ class ProcessBuilder {
 
                         // Extract the file.
                         if(!shouldExclude){
-                            fs.writeFile(path.join(tempNativePath, extractName), zipEntries[i].getData(), (err) => {
+                            fs.writeFile(path.join(nativeOutPath, extractName), zipEntries[i].getData(), (err) => {
                                 if(err){
                                     logger.error('Error while extracting native library:', err)
                                 }

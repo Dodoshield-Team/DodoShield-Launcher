@@ -1,8 +1,13 @@
-// NOTE FOR THIRD-PARTY
-// REPLACE THIS CLIENT ID WITH YOUR APPLICATION ID.
-// SEE https://github.com/dscalzi/HeliosLauncher/blob/master/docs/MicrosoftAuth.md
+// Azure app registrations used for Microsoft sign-in.
+//  - AZURE_CLIENT_ID: public Helios Launcher id. Only allows the embedded-window flow
+//    (nativeclient redirect) but is already approved by Mojang for the Minecraft API.
+//  - AZURE_BROWSER_CLIENT_ID: DodoShield's own registration with http://localhost as a
+//    Mobile/desktop redirect URI, used for sign-in through the system browser.
+// MSFT_LOGIN_IN_BROWSER selects the browser flow first; if Mojang has not (yet) approved
+// the DodoShield id, the launcher falls back to the embedded flow automatically.
 exports.AZURE_CLIENT_ID = '1ce6e35a-126f-48fd-97fb-54d143ac6d45'
-// SEE NOTE ABOVE.
+exports.AZURE_BROWSER_CLIENT_ID = 'bf3ac53c-f5e4-49d3-8bed-abbc72f7f4d3'
+exports.MSFT_LOGIN_IN_BROWSER = true
 
 
 // Opcodes

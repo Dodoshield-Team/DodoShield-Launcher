@@ -137,6 +137,7 @@ state = "Server: {shortId}"
 [js.index]
 microsoftLoginTitle = "Microsoft Login"
 microsoftLogoutTitle = "Microsoft Logout"
+microsoftLoginBrowserDone = "<!doctype html><html lang=\"uk\"><head><meta charset=\"utf-8\"><title>DodoShield Launcher</title></head><body style=\"margin:0;height:100vh;display:flex;align-items:center;justify-content:center;background:#1b1b1f;color:#eee;font-family:Segoe UI,Arial,sans-serif;text-align:center\"><div><h1 style=\"margin:0 0 12px\">Вхід виконано ✔</h1><p style=\"margin:0;color:#aaa\">Цю вкладку можна закрити і повернутися до DodoShield Launcher.</p></div></body></html>"
 
 [js.login]
 login = "LOGIN"
@@ -153,6 +154,8 @@ title = "Unknown Error During Login"
 desc = "An unknown error has occurred. Please see the console for details."
 
 [js.landing.launch]
+launchButton = "PLAY"
+gameRunning = "GAME RUNNING"
 pleaseWait = "Please wait.."
 failureTitle = "Error During Launch"
 failureText = "See console (CTRL + Shift + i) for more details."
@@ -300,6 +303,14 @@ selectAnotherAccountButton = "Select Another Account"
 checkingForUpdateButton = "Checking for Updates..."
 installNowButton = "Install Now"
 checkForUpdatesButton = "Check for Updates"
+gateChecking = "Checking for launcher updates.."
+gateDownloading = "Downloading update {version} {percent}%"
+updateNowButton = "⬆ Update to {version}"
+promptTitle = "Update {version} available"
+promptDesc = "A new launcher version has been downloaded. Install it now? The launcher will restart in a few seconds."
+promptInstall = "Update"
+promptLater = "Later"
+gateInstalling = "Installing update {version}, the launcher will restart.."
 
 [js.auth.microsoft.error]
 noProfileTitle = "Error During Login:<br>Profile Not Set Up"

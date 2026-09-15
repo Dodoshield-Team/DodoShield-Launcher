@@ -3,10 +3,8 @@
  */
 // Requirements
 const { URL }                 = require('url')
-const {
-    MojangRestAPI,
-    getServerStatus
-}                             = require('helios-core/mojang')
+const ServerStatus            = require('./assets/js/serverstatus')
+const { MojangRestAPI }       = require('helios-core/mojang')
 const {
     RestResponseStatus,
     isDisplayableError,
@@ -28,6 +26,7 @@ const {
 }                             = require('helios-core/java')
 
 // Internal Requirements
+const fs                      = require('fs-extra')
 const DiscordWrapper          = require('./assets/js/discordwrapper')
 const ProcessBuilder          = require('./assets/js/processbuilder')
 
@@ -94,12 +93,25 @@ function setDownloadPercentage(percent){
  * 
  * @param {boolean} val True to enable, false to disable.
  */
+// While the game process is alive the play button is locked so a second
+// click cannot start another copy of the game.
+let gameRunning = false
 function setLaunchEnabled(val){
-    document.getElementById('launch_button').disabled = !val
+    document.getElementById('launch_button').disabled = !val || gameRunning
+}
+function setGameRunning(running){
+    gameRunning = running
+    const btn = document.getElementById('launch_button')
+    btn.innerHTML = Lang.queryJS(running ? 'landing.launch.gameRunning' : 'landing.launch.launchButton')
+    setLaunchEnabled(ConfigManager.getSelectedServer() != null)
 }
 
 // Bind launch button
 document.getElementById('launch_button').addEventListener('click', async e => {
+    if(gameRunning){
+        loggerLanding.warn('Game is already running, ignoring launch request.')
+        return
+    }
     loggerLanding.info('Launching game..')
     try {
         const server = (await DistroAPI.getDistribution()).getServerById(ConfigManager.getSelectedServer())
@@ -127,12 +139,6 @@ document.getElementById('launch_button').addEventListener('click', async e => {
     }
 })
 
-// Bind settings button
-document.getElementById('settingsMediaButton').onclick = async e => {
-    await prepareSettings()
-    switchView(getCurrentView(), VIEWS.settings)
-}
-
 // Bind avatar overlay button.
 document.getElementById('avatarOverlay').onclick = async e => {
     await prepareSettings()
@@ -149,12 +155,18 @@ function updateSelectedAccount(authUser){
             username = authUser.displayName
         }
         if(authUser.uuid != null){
-            document.getElementById('avatarContainer').style.backgroundImage = `url('https://mc-heads.net/body/${authUser.uuid}/right')`
+            document.getElementById('avatarContainer').style.backgroundImage = `url('https://visage.surgeplay.com/bust/256/${authUser.uuid}')`
         }
     }
     user_text.innerHTML = username
 }
 updateSelectedAccount(ConfigManager.getSelectedAccount())
+
+// The DodoShield seal in the corner opens the project site.
+const image_seal_container = document.getElementById('image_seal_container')
+image_seal_container.style.cursor = 'pointer'
+image_seal_container.title = 'dodoshield.com'
+image_seal_container.onclick = () => shell.openExternal('https://dodoshield.com/')
 
 // Bind selected server
 function updateSelectedServer(serv){
@@ -164,11 +176,41 @@ function updateSelectedServer(serv){
     ConfigManager.setSelectedServer(serv != null ? serv.rawServer.id : null)
     ConfigManager.save()
     server_selection_button.innerHTML = '&#8226; ' + (serv != null ? serv.rawServer.name : Lang.queryJS('landing.noSelection'))
+    for(const tab of document.querySelectorAll('#packTabs .packTab')){
+        tab.classList.toggle('active', serv != null && tab.getAttribute('servid') === serv.rawServer.id)
+    }
     if(getCurrentView() === VIEWS.settings){
         animateSettingsTabRefresh()
     }
     setLaunchEnabled(serv != null)
 }
+/**
+ * Render one tab per modpack in the top bar. Clicking a tab selects that pack.
+ *
+ * @param {HeliosDistribution} data The distribution index.
+ */
+function renderPackTabs(data){
+    const container = document.getElementById('packTabs')
+    container.innerHTML = ''
+    for(const serv of data.servers){
+        const tab = document.createElement('button')
+        tab.className = 'packTab'
+        tab.setAttribute('servid', serv.rawServer.id)
+        tab.innerHTML = `<img class="packTabIcon" src="${serv.rawServer.icon}"/><span class="packTabName">${serv.rawServer.name}</span>`
+        tab.onclick = e => {
+            e.currentTarget.blur()
+            if(ConfigManager.getSelectedServer() === serv.rawServer.id) return
+            updateSelectedServer(serv)
+            refreshServerStatus(true)
+        }
+        container.appendChild(tab)
+    }
+    const sel = data.getServerById(ConfigManager.getSelectedServer())
+    for(const tab of container.querySelectorAll('.packTab')){
+        tab.classList.toggle('active', sel != null && tab.getAttribute('servid') === sel.rawServer.id)
+    }
+}
+
 // Real text is set in uibinder.js on distributionIndexDone.
 server_selection_button.innerHTML = '&#8226; ' + Lang.queryJS('landing.selectedServer.loading')
 server_selection_button.onclick = async e => {
@@ -244,7 +286,7 @@ const refreshServerStatus = async (fade = false) => {
 
     try {
 
-        const servStat = await getServerStatus(47, serv.hostname, serv.port)
+        const servStat = await ServerStatus.getServerStatus(serv.hostname, serv.port)
         console.log(servStat)
         pLabel = Lang.queryJS('landing.serverStatus.players')
         pVal = servStat.players.online + '/' + servStat.players.max
@@ -445,6 +487,27 @@ const GAME_JOINED_REGEX = /\[.+\]: Sound engine started/
 const GAME_LAUNCH_REGEX = /^\[.+\]: (?:MinecraftForge .+ Initialized|ModLauncher .+ starting: .+|Loading Minecraft .+ with Fabric Loader .+)$/
 const MIN_LINGER = 5000
 
+// Untracked files (options.txt, servers.dat, config/...) are only downloaded when missing,
+// so an instance that ran the game before the pack defaults were published keeps the
+// game-generated files. Bump DEFAULTS_VERSION to make every install re-apply the
+// distribution's defaults once (the files are deleted here and re-downloaded by FullRepair).
+const DEFAULTS_VERSION = 1
+function applyPackDefaultsOnce(serv, logger) {
+    const instDir = path.join(ConfigManager.getInstanceDirectory(), serv.rawServer.id)
+    const marker = path.join(instDir, '.dodoshield-defaults')
+    let applied = -1
+    try { applied = parseInt(fs.readFileSync(marker, 'utf8'), 10) } catch (_e) { /* first run */ }
+    if (applied >= DEFAULTS_VERSION) return
+    if (fs.existsSync(instDir)) {
+        for (const rel of ['options.txt', 'optionsshaders.txt', 'servers.dat', 'config']) {
+            try { fs.removeSync(path.join(instDir, rel)) } catch (err) { logger.warn('Could not reset ' + rel, err) }
+        }
+        logger.info(`Pack defaults v${DEFAULTS_VERSION} will be re-applied for ${serv.rawServer.id}`)
+    }
+    fs.ensureDirSync(instDir)
+    fs.writeFileSync(marker, String(DEFAULTS_VERSION))
+}
+
 async function dlAsync(login = true) {
 
     // Login parameter is temporary for debug purposes. Allows testing the validation/downloads without
@@ -477,6 +540,8 @@ async function dlAsync(login = true) {
     setLaunchDetails(Lang.queryJS('landing.dlAsync.pleaseWait'))
     toggleLaunchArea(true)
     setLaunchPercentage(0, 100)
+
+    applyPackDefaultsOnce(serv, loggerLaunchSuite)
 
     const fullRepairModule = new FullRepair(
         ConfigManager.getCommonDirectory(),
@@ -611,6 +676,21 @@ async function dlAsync(login = true) {
             // Bind listeners to stdout.
             proc.stdout.on('data', tempListener)
             proc.stderr.on('data', gameErrorListener)
+
+            // Mirror the game's console to a file so crashes can be diagnosed without DevTools.
+            const gameLog = require('fs').createWriteStream(path.join(ConfigManager.getLauncherDirectory(), 'game-output.log'))
+            gameLog.write(`[${new Date().toISOString()}] Launching ${serv.rawServer.id}\n`)
+            proc.stdout.on('data', d => gameLog.write(d))
+            proc.stderr.on('data', d => gameLog.write(d))
+            proc.on('close', (code, signal) => {
+                gameLog.write(`\n[${new Date().toISOString()}] Game process exited: code=${code} signal=${signal}\n`)
+                gameLog.end()
+            })
+            setGameRunning(true)
+            proc.on('close', () => {
+                proc = null
+                setGameRunning(false)
+            })
 
             setLaunchDetails(Lang.queryJS('landing.dlAsync.doneEnjoyServer'))
 
