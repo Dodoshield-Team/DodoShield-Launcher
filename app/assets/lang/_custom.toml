@@ -4,14 +4,14 @@
 title = "DodoShield Launcher"
 
 [ejs.landing]
-mediaGitHubURL = "https://github.com/ArturNaganda/DodoShield-Launcher"
+mediaGitHubURL = "https://github.com/Sebastian-xD/DodoShield-Launcher"
 mediaXURL = "#"
 mediaInstagramURL = "#"
 mediaYouTubeURL = "#"
 mediaDiscordURL = "#"
 
 [ejs.settings]
-sourceGithubLink = "https://github.com/ArturNaganda/DodoShield-Launcher"
+sourceGithubLink = "https://github.com/Sebastian-xD/DodoShield-Launcher"
 supportLink = "https://dodoshield.com"
 
 [ejs.welcome]

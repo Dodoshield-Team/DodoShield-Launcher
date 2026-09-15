@@ -4022,3 +4022,7 @@ input:checked + .toggleSwitchSlider:before {
 .settingsModsHeaderCollapsible[expanded] .settingsModsHeaderArrow { transform: rotate(90deg); }
 #settingsReqModsCount { font-size: 12px; opacity: 0.7; }
 #settingsReqModsContent[collapsed] { display: none; }
+
+/* GitHub link in the bottom bar. */
+#githubLink { cursor: pointer; color: #c7c7c7; transition: color 0.2s ease; }
+#githubLink:hover { color: #fff; }
