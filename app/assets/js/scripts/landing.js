@@ -168,9 +168,6 @@ image_seal_container.style.cursor = 'pointer'
 image_seal_container.title = 'dodoshield.com'
 image_seal_container.onclick = () => shell.openExternal('https://dodoshield.com/')
 
-// Source-code link in the bottom bar.
-document.getElementById('githubLink').onclick = e => { e.preventDefault(); shell.openExternal(e.currentTarget.href) }
-
 // Bind selected server
 function updateSelectedServer(serv){
     if(getCurrentView() === VIEWS.settings){
