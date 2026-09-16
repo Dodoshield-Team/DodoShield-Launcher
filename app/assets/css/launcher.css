@@ -4137,3 +4137,33 @@ input:checked + .toggleSwitchSlider:before {
 #launchCenter { flex-direction: column; gap: 6px; }
 #updateSlot { height: 48px; display: flex; align-items: center; justify-content: center; }
 #updateNowButton { margin: 0; height: 40px; padding: 0px 22px; font-size: 14px; border-radius: 12px; }
+
+/* ---------------------------------------------------------------------------
+ * Landing: three-zone top bar (logo | tabs centered | user), play button
+ * centered between the top bar and the bottom pill.
+ * ------------------------------------------------------------------------- */
+#landingContainer > #upper {
+    position: absolute; top: 0; left: 0; width: 100%; height: auto;
+    display: grid; grid-template-columns: 1fr auto 1fr; align-items: center;
+    padding: 40px 40px 0px 40px; box-sizing: border-box; z-index: 2;
+}
+#landingContainer > #upper > #left,
+#landingContainer > #upper > #content,
+#landingContainer > #upper > #right { position: static; width: auto; height: auto; display: flex; flex-direction: row; align-items: center; }
+#landingContainer > #upper > #left { justify-content: flex-start; }
+#landingContainer > #upper > #right { justify-content: flex-end; }
+#image_seal_container { margin-top: 0; }
+#rightContainer { top: 0; height: auto; align-items: center; }
+#user_content { gap: 14px; }
+#user_text { position: static; right: auto; min-width: 0; font-size: 13px; }
+#packTabs { margin: 0; height: auto; gap: 16px; }
+.packTab { height: 60px; padding: 0px 18px 0px 8px; font-size: 15px; gap: 10px; }
+.packTabIcon { width: 42px; height: 42px; }
+.packTabName { white-space: nowrap; }
+.packTabVer { font-size: 12px; opacity: 0.6; letter-spacing: 0; }
+.packTab.active .packTabVer { opacity: 0.8; }
+
+#launchCenter { position: absolute; left: 0; right: 0; top: 110px; bottom: 110px; width: auto; padding: 0; display: flex; flex-direction: row; align-items: center; justify-content: center; gap: 0; }
+#launchGroup { position: relative; display: flex; flex-direction: column; align-items: center; }
+#updateSlot { position: absolute; bottom: 100%; left: 50%; transform: translateX(-50%); height: auto; margin-bottom: 14px; }
+#updateNowButton { white-space: nowrap; }

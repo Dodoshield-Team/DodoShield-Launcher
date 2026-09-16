@@ -331,6 +331,10 @@ ipcMain.on(MSFT_OPCODE.OPEN_LOGOUT, (ipcEvent, uuid, isLastAccount) => {
 // be closed automatically when the JavaScript object is garbage collected.
 let win
 
+// Dev only: render the window off-screen (never shown) and serve screenshots of it on
+// http://127.0.0.1:9224/shot so the UI can be checked without opening a window.
+const devHidden = isDev && process.env.DODO_HIDDEN === '1'
+
 function createWindow() {
 
     win = new BrowserWindow({
@@ -338,14 +342,28 @@ function createWindow() {
         height: 552,
         icon: getPlatformIcon('SealCircle'),
         frame: false,
+        show: !devHidden,
         webPreferences: {
             preload: path.join(__dirname, 'app', 'assets', 'js', 'preloader.js'),
             nodeIntegration: true,
-            contextIsolation: false
+            contextIsolation: false,
+            offscreen: devHidden
         },
         backgroundColor: '#171614'
     })
     remoteMain.enable(win.webContents)
+    if (devHidden) {
+        win.webContents.setFrameRate(10)
+        http.createServer(async (req, res) => {
+            try {
+                const img = await win.webContents.capturePage()
+                res.writeHead(200, { 'Content-Type': 'image/png' })
+                res.end(img.toPNG())
+            } catch (e) {
+                res.writeHead(500); res.end(String(e))
+            }
+        }).listen(9224, '127.0.0.1')
+    }
 
     const data = {
         bkid: Math.floor((Math.random() * fs.readdirSync(path.join(__dirname, 'app', 'assets', 'images', 'backgrounds')).length)),

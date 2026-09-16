@@ -197,7 +197,8 @@ function renderPackTabs(data){
         const tab = document.createElement('button')
         tab.className = 'packTab'
         tab.setAttribute('servid', serv.rawServer.id)
-        tab.innerHTML = `<img class="packTabIcon" src="${serv.rawServer.icon}"/><span class="packTabName">${serv.rawServer.name}</span>`
+        const name = serv.rawServer.name.replace(/\s+(v?\d[\w.]*)$/, ' <span class="packTabVer">$1</span>')
+        tab.innerHTML = `<img class="packTabIcon" src="${serv.rawServer.icon}"/><span class="packTabName">${name}</span>`
         tab.onclick = e => {
             e.currentTarget.blur()
             if(ConfigManager.getSelectedServer() === serv.rawServer.id) return
