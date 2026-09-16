@@ -4026,3 +4026,16 @@ input:checked + .toggleSwitchSlider:before {
 /* GitHub link in the bottom bar. */
 #githubLink { cursor: pointer; color: #c7c7c7; transition: color 0.2s ease; }
 #githubLink:hover { color: #fff; }
+
+/* Donate link in the bottom bar. */
+#donateLink { cursor: pointer; color: #ffd24a; transition: color 0.2s ease, text-shadow 0.2s ease; }
+#donateLink:hover { color: #fff; text-shadow: 0 0 8px rgba(255, 210, 74, 0.8); }
+
+/* Bottom bar items must never wrap (fixed 980px window). */
+#landingContainer > #lower .bot_label, #donateLink { white-space: nowrap; }
+#landingContainer > #lower #left #content { display: flex; align-items: center; flex-wrap: nowrap; }
+#donateLink { text-decoration: none; padding: 8px 4px; }
+
+/* The left bottom-bar content overflows into #center; keep it clickable on top. */
+#landingContainer > #lower > #left { z-index: 2; }
+#landingContainer > #lower > #left #content { left: 30px; }

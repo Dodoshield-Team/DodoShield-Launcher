@@ -361,7 +361,10 @@ function createWindow() {
 
     win.removeMenu()
 
-    win.resizable = true
+    // Fixed window size: the layout is designed for 980x552 and breaks when shrunk.
+    win.resizable = false
+    win.setMaximizable(false)
+    win.setFullScreenable(false)
 
     win.on('closed', () => {
         win = null
