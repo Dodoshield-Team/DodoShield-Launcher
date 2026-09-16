@@ -27,6 +27,7 @@ const {
 
 // Internal Requirements
 const fs                      = require('fs-extra')
+const NBT                     = require('./assets/js/nbt')
 const DiscordWrapper          = require('./assets/js/discordwrapper')
 const ProcessBuilder          = require('./assets/js/processbuilder')
 
@@ -508,6 +509,48 @@ function applyPackDefaultsOnce(serv, logger) {
     fs.writeFileSync(marker, String(DEFAULTS_VERSION))
 }
 
+/**
+ * Make sure the pack's own server is always present in the instance's servers.dat,
+ * even if the player removed it. Adds it to the top of the list when missing.
+ */
+function ensurePackServerListed(serv, logger) {
+    try {
+        const addr = serv.rawServer.address || ''
+        if (!addr) return
+        const file = path.join(ConfigManager.getInstanceDirectory(), serv.rawServer.id, 'servers.dat')
+        let root = { name: '', value: {} }
+        if (fs.existsSync(file)) {
+            try { root = NBT.parse(fs.readFileSync(file)) } catch (e) { logger.warn('servers.dat unreadable, recreating', e) }
+        }
+        if (!root.value.servers || root.value.servers.type !== NBT.Tag.List) {
+            root.value.servers = { type: NBT.Tag.List, value: { type: NBT.Tag.Compound, value: [] } }
+        }
+        const list = root.value.servers.value
+        list.type = NBT.Tag.Compound
+        const norm = ip => ip.toLowerCase().replace(/:25565$/, '')
+        const existing = list.value.find(entry => entry.ip && norm(entry.ip.value) === norm(addr))
+        if (existing) {
+            // Quick-play connects store the server as "hidden" (not shown in the list): unhide it.
+            let changed = false
+            if (existing.hidden && existing.hidden.value !== 0) { existing.hidden.value = 0; changed = true }
+            const generic = /^(Сервер Minecraft|Minecraft Server)$/i
+            if (!existing.name || generic.test(existing.name.value)) { existing.name = { type: NBT.Tag.String, value: serv.rawServer.name }; changed = true }
+            if (changed) { fs.writeFileSync(file, NBT.write(root.name, root.value)); logger.info(`Unhid/renamed ${addr} in servers.dat`) }
+            return
+        }
+        list.value.unshift({
+            name: { type: NBT.Tag.String, value: serv.rawServer.name },
+            ip: { type: NBT.Tag.String, value: addr },
+            hidden: { type: NBT.Tag.Byte, value: 0 }
+        })
+        fs.ensureDirSync(path.dirname(file))
+        fs.writeFileSync(file, NBT.write(root.name, root.value))
+        logger.info(`Added ${serv.rawServer.name} (${addr}) to servers.dat`)
+    } catch (err) {
+        logger.warn('Could not update servers.dat', err)
+    }
+}
+
 async function dlAsync(login = true) {
 
     // Login parameter is temporary for debug purposes. Allows testing the validation/downloads without
@@ -668,6 +711,8 @@ async function dlAsync(login = true) {
                 showLaunchFailure(Lang.queryJS('landing.dlAsync.errorDuringLaunchTitle'), Lang.queryJS('landing.dlAsync.launchWrapperNotDownloaded'))
             }
         }
+
+        ensurePackServerListed(serv, loggerLaunchSuite)
 
         try {
             // Build Minecraft process.

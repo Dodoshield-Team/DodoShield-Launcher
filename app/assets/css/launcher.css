@@ -4039,3 +4039,100 @@ input:checked + .toggleSwitchSlider:before {
 /* The left bottom-bar content overflows into #center; keep it clickable on top. */
 #landingContainer > #lower > #left { z-index: 2; }
 #landingContainer > #lower > #left #content { left: 30px; }
+
+/* Play button must stay on one line ("GAME RUNNING"). */
+#launch_button { white-space: nowrap; }
+#launch_button:disabled { font-size: 16px; }
+
+/* ---------------------------------------------------------------------------
+ * Landing relayout: play button in the middle, status pill centered at the
+ * bottom, no news panel. Accent colour matches the tab highlight.
+ * ------------------------------------------------------------------------- */
+:root { --dodo-accent: #33d4ff; }
+
+/* Tab bar: glass pills with a cyan active state. */
+#packTabs { margin-top: 44px; margin-left: 30px; gap: 20px; }
+.packTab { height: 62px; padding: 0px 22px 0px 10px; border-radius: 14px; font-size: 16px; background: rgba(20, 24, 32, 0.55); border: 2px solid rgba(255, 255, 255, 0.28); backdrop-filter: blur(6px); }
+.packTab:hover, .packTab:focus { border-color: rgba(255, 255, 255, 0.6); background: rgba(20, 24, 32, 0.7); }
+.packTab.active { border-color: var(--dodo-accent); background: rgba(20, 24, 32, 0.75); box-shadow: 0px 0px 14px rgba(51, 212, 255, 0.55), inset 0px 0px 10px rgba(51, 212, 255, 0.15); }
+.packTabIcon { height: 44px; width: 44px; border-radius: 10px; }
+
+/* Play area: fills the remaining space under the tab bar, everything centered. */
+#landingContainer > #upper { height: 100%; position: absolute; top: 0; left: 0; width: 100%; }
+#launchCenter { flex: 1; width: 100%; display: flex; align-items: center; justify-content: center; padding-bottom: 60px; }
+#launch_content { display: inline-flex; flex-direction: column; align-items: center; gap: 12px; }
+#launch_button {
+    padding: 18px 46px;
+    border-radius: 16px;
+    background: rgba(20, 24, 32, 0.55);
+    border: 2px solid rgba(255, 255, 255, 0.28);
+    backdrop-filter: blur(6px);
+    color: var(--dodo-accent);
+    font-size: 40px;
+    font-weight: 900;
+    letter-spacing: 4px;
+    text-shadow: 0px 0px 14px rgba(51, 212, 255, 0.75);
+    box-shadow: 0px 8px 30px rgba(0, 0, 0, 0.45);
+}
+#launch_button:hover, #launch_button:focus { border-color: var(--dodo-accent); text-shadow: 0px 0px 18px rgba(51, 212, 255, 1), 0px 0px 30px rgba(51, 212, 255, 0.6); box-shadow: 0px 0px 22px rgba(51, 212, 255, 0.45), 0px 8px 30px rgba(0, 0, 0, 0.45); }
+#launch_button:active { color: #fff; transform: scale(0.98); }
+#launch_button:disabled { color: rgba(255, 255, 255, 0.55); border-color: rgba(255, 255, 255, 0.18); text-shadow: none; box-shadow: none; font-size: 30px; }
+#server_selection_button { font-size: 16px; letter-spacing: 0.5px; font-family: 'Avenir Medium'; font-weight: 700; color: #fff; text-shadow: 0px 2px 8px rgba(0, 0, 0, 0.8); }
+#launch_details { display: none; top: 0; align-items: center; }
+#launch_progress[value] { width: 320px; }
+#launch_details_text { font-size: 12px; }
+
+/* Bottom status pill, centered. */
+#landingContainer > #lower { position: absolute; bottom: 0; left: 0; width: 100%; height: 110px; justify-content: center; align-items: flex-end; padding-bottom: 28px; box-sizing: border-box; }
+#landingContainer > #lower > #left { width: auto; height: auto; top: 0; }
+#landingContainer > #lower > #left #content {
+    top: 0; left: 0;
+    align-items: center;
+    padding: 0px 26px;
+    height: 56px;
+    border-radius: 14px;
+    background: rgba(20, 24, 32, 0.55);
+    border: 2px solid rgba(255, 255, 255, 0.28);
+    backdrop-filter: blur(6px);
+    box-shadow: 0px 8px 30px rgba(0, 0, 0, 0.45);
+}
+#landingContainer > #lower .bot_label { font-size: 12px; letter-spacing: 1.5px; }
+#server_status_wrapper { width: auto; align-items: center; }
+#player_count { font-size: 11px; margin-left: 10px; }
+#mojang_status_icon { margin-left: 12px; line-height: 24px; }
+#mojangStatusWrapper { align-items: center; }
+#landingContainer > #lower .bot_divider { height: 26px; margin-left: 22px; margin-right: 22px; }
+#donateLink {
+    padding: 8px 16px;
+    border-radius: 10px;
+    color: #ff6a6a;
+    background: rgba(255, 70, 70, 0.14);
+    border: 1px solid rgba(255, 90, 90, 0.5);
+    text-shadow: 0px 0px 8px rgba(255, 90, 90, 0.6);
+}
+#donateLink:hover { color: #fff; background: rgba(255, 70, 70, 0.32); border-color: #ff6a6a; box-shadow: 0px 0px 14px rgba(255, 90, 90, 0.55); }
+#newsContainer { display: none; }
+
+/* Download/launch progress shown as a glass card in place of the play button. */
+#launch_details {
+    flex-direction: column;
+    align-items: center;
+    gap: 10px;
+    padding: 16px 40px;
+    min-width: 320px;
+    border-radius: 16px;
+    background: rgba(20, 24, 32, 0.55);
+    border: 2px solid rgba(255, 255, 255, 0.28);
+    backdrop-filter: blur(6px);
+    box-shadow: 0px 8px 30px rgba(0, 0, 0, 0.45);
+}
+#launch_details_left .bot_divider { display: none; }
+#launch_progress_label { min-width: 0; max-width: none; text-align: center; font-size: 34px; letter-spacing: 2px; color: var(--dodo-accent); text-shadow: 0px 0px 14px rgba(51, 212, 255, 0.75); }
+#launch_details_right { align-items: center; gap: 8px; }
+#launch_progress[value] { width: 320px; height: 6px; border-radius: 3px; overflow: hidden; }
+#launch_progress[value]::-webkit-progress-bar { background-color: rgba(255, 255, 255, 0.15); border-radius: 3px; }
+#launch_progress[value]::-webkit-progress-value { background-color: var(--dodo-accent); border-radius: 3px; box-shadow: 0px 0px 10px rgba(51, 212, 255, 0.8); transition: width 0.25s ease; }
+#launch_details_text { font-family: 'Avenir Medium'; font-size: 12px; letter-spacing: 1px; color: #fff; max-width: 320px; text-align: center; }
+/* Update button floats under the tabs without pushing the play button. */
+#landingContainer > #upper > #content { position: relative; }
+#updateNowButton { position: absolute; top: 116px; left: 30px; margin: 0; z-index: 3; }

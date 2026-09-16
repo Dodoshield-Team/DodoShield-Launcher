@@ -451,6 +451,11 @@ function getPlatformIcon(filename){
     return path.join(__dirname, 'app', 'assets', 'images', `${filename}.${ext}`)
 }
 
+// Dev only: run a second instance next to the installed launcher with its own user data.
+if (isDev && process.env.DODO_USER_DATA) {
+    app.setPath('userData', process.env.DODO_USER_DATA)
+}
+
 // Only one launcher instance at a time; a second launch just focuses the existing window.
 if (!app.requestSingleInstanceLock()) {
     app.quit()

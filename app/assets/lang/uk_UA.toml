@@ -3,7 +3,7 @@ updateAvailableTooltip = "Доступне оновлення"
 usernamePlaceholder = "Нік"
 usernameEditButton = "Налаштування"
 settingsTooltip = "Налаштування"
-serverStatus = "СЕРВЕР"
+serverStatus = "ГРАВЦІВ"
 serverStatusPlaceholder = "ОФЛАЙН"
 mojangStatus = "СТАТУС MOJANG"
 mojangStatusTooltipTitle = "Сервіси"
@@ -155,7 +155,7 @@ desc = "Сталася невідома помилка. Деталі — у ко
 
 [js.landing.launch]
 launchButton = "ГРАТИ"
-gameRunning = "ГРА ЗАПУЩЕНА"
+gameRunning = "ЗАПУЩЕНО"
 pleaseWait = "Зачекайте.."
 failureTitle = "Помилка під час запуску"
 failureText = "Деталі — у консолі (CTRL + Shift + i)."

@@ -89,7 +89,8 @@ exports.getServerStatus = async function(host, port = 25565, protocol = 47, time
                 socket.end()
                 resolve({
                     players: { online: parsed.players?.online ?? 0, max: parsed.players?.max ?? 0 },
-                    version: { name: parsed.version?.name ?? '' }
+                    version: { name: parsed.version?.name ?? '' },
+                    raw: parsed
                 })
             } catch (err) {
                 fail(err)
