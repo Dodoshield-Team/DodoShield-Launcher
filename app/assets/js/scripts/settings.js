@@ -1491,7 +1491,7 @@ function populateReleaseNotes(){
  */
 // About-tab links: open explicitly in the system browser (the generic
 // a[href^="http"] handler in uicore.js does the same, this is just belt and braces).
-for(const el of [document.getElementById('settingsAboutSourceButton'), document.getElementById('settingsAboutSupportButton'), settingsAboutChangelogButton]){
+for(const el of [document.getElementById('settingsAboutSourceButton'), document.getElementById('settingsAboutSupportButton'), document.getElementById('settingsAboutDonateButton'), settingsAboutChangelogButton]){
     if(el){
         el.addEventListener('click', e => {
             const href = el.getAttribute('href')
