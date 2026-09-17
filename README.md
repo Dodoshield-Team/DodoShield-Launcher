@@ -53,7 +53,7 @@ npm run dist:win   # інсталятор для Windows (dist/)
 
 1. Зробіть форк, гілку від `main` і Pull Request; в описі — що змінилось і як це перевірити.
 2. Перед PR: `npm run lint` і запуск `npm start` (лаунчер має відкритись і показати збірки).
-3. Знайшли баг або маєте пропозицію — заводьте [issue](https://github.com/Sebastian-xD/DodoShield-Launcher/issues) з версією лаунчера та, якщо є, логом із «Налаштування → Про програму».
+3. Знайшли баг або маєте пропозицію — заводьте [issue](https://github.com/Dodoshield-Team/DodoShield-Launcher/issues) з версією лаунчера та, якщо є, логом із «Налаштування → Про програму».
 
 Хочете підняти власну мережу на цьому лаунчері: свій список збірок генерується [Nebula](https://github.com/dscalzi/Nebula), після чого достатньо замінити адресу дистрибутиву в `app/assets/js/distromanager.js`, адресу оновлень в `electron-builder.yml` та іконки в `app/assets/images/`. Azure client id для входу Microsoft — власний, у `app/assets/js/ipcconstants.js`.
 
