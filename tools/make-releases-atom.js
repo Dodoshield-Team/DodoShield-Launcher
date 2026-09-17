@@ -3,7 +3,7 @@
 const fs = require('fs')
 const path = require('path')
 
-const REPO = 'https://github.com/Sebastian-xD/DodoShield-Launcher'
+const REPO = 'https://github.com/Dodoshield-Team/DodoShield-Launcher'
 const md = fs.readFileSync(path.join(__dirname, '..', 'CHANGELOG.md'), 'utf8')
 const esc = s => s.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;')
 
