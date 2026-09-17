@@ -64,7 +64,9 @@ body, button {
     display: flex;
     flex-direction: column;
     transition: background-color 1s ease;
-    /*background-color: rgba(0, 0, 0, 0.5);*/
+    /* Same flat dark as the landing view, so the title bar does not show the
+       background image through it. */
+    background-color: #0c0c11;
     -webkit-user-select: none;
 }
 
@@ -2441,1053 +2443,433 @@ input:checked + .toggleSwitchSlider:before {
 
 /*******************************************************************************
  *                                                                             *
- * Landing View (Structural Styles)                                            *
+ * Landing View (landing.ejs)                                                  *
  *                                                                             *
  ******************************************************************************/
 
-/* Main content container. */
+/* Flat dark theme with the DodoShield blue accent. */
 #landingContainer {
+    --dodo-bg: #0c0c11;
+    --dodo-panel: #15151c;
+    --dodo-line: rgba(255, 255, 255, .09);
+    --dodo-text: #f2f3f8;
+    --dodo-muted: #9aa0b0;
+    --dodo-accent: #3b82f6;
+    --dodo-accent-soft: rgba(59, 130, 246, .16);
     height: 100%;
-    position: relative;
-    transition: background 2s ease;
-    overflow-y: hidden;
-}
-
-/* Upper content container. */
-#landingContainer > #upper {
-    position: relative;
-    transition: top 2s ease;
-    top: 0px;
-    height: 77%;
     display: flex;
-}
-#landingContainer > #upper > #left {
-    display: inline-flex;
-    width: 15%;
-    height: 100%;
-    justify-content: flex-end;
-}
-#landingContainer > #upper > #content {
-    display: inline-flex;
-    width: 70%;
-    height: 100%;
-}
-#landingContainer > #upper > #right {
-    display: inline-flex;
-    width: 15%;
-    height: 100%;
+    background: var(--dodo-bg);
+    color: var(--dodo-text);
+    overflow: hidden;
 }
 
-/* Lower content container. */
-#landingContainer > #lower {
-    height: 23%;
+#dodoShell {
     display: flex;
-    background: linear-gradient(to top, rgba(0, 0, 0, 0.75), rgba(0, 0, 0, 0));
-}
-#landingContainer > #lower > #left {
-    position: relative;
-    transition: top 2s ease;
-    top: 0px;
-    height: 100%;
-    width: 33%;
-    display: inline-flex;
-    justify-content: center;
-}
-#landingContainer > #lower > #left #content {
-    position: relative;
-    top: 25px;
-    display: inline-flex;
-    line-height: 24px;
-    left: 50px;
-}
-#landingContainer > #lower > #center {
-    position: relative;
-    transition: top 2s ease;
-    top: 0px;
-    height: 100%;
-    width: 34%;
-    display: inline-flex;
-    justify-content: center;
-}
-#landingContainer > #lower > #center #content {
-    position: relative;
-    z-index: 500;
-    transition: top 2s ease;
-    top: 10px;
-}
-#landingContainer > #lower > #right {
-    position: relative;
-    transition: top 2s ease;
-    top: 0px;
-    height: 100%;
-    width: 33%;
-    display: inline-flex;
-}
-
-/*******************************************************************************
- *                                                                             *
- * Landing View (News Styles)                                                  *
- *                                                                             *
- ******************************************************************************/
-
-/* Main container. */
-#newsContainer {
-    position: absolute;
-    top: 100%;
-    height: 100%;
     width: 100%;
-    transition: top 2s ease;
-    display: flex;
-    align-items: flex-end;
-    justify-content: center;
-}
-
-/* News content container. */
-#newsContent {
-    height: 82vh;
-    width: 100%;
-    display: flex;
-    -webkit-user-select: initial;
-    position: relative;
-}
-
-/* Drop shadow displayed when content is scrolled out of view. */
-#newsContent:before {
-    content: '';
-    background: linear-gradient(rgba(0, 0, 0, 0.25), transparent);
-    width: 100%;
-    height: 5px;
-    position: absolute;
-    opacity: 0;
-    transition: opacity 0.25s ease;
-}
-#newsContent[scrolled]:before {
-    opacity: 1;
-}
-
-/* News article status container (left). */
-#newsStatusContainer {
-    width: calc(30% - 60px);
-    height: calc(100% - 30px);
-    padding: 15px 15px 15px 45px;
-    display: flex;
-    flex-direction: column;
-    justify-content: space-between;
-    position: relative;
-}
-
-/* News status content. */
-#newsStatusContent {
-    display: flex;
-    flex-direction: column;
-    align-items: flex-end;
-}
-
-/* News title wrapper. */
-#newsTitleContainer {
-    display: flex;
-    max-width: 90%;
-}
-
-/* News article title styles. */
-#newsArticleTitle {
-    font-size: 18px;
-    font-weight: bold;
-    font-family: 'Avenir Medium';
-    color: white;
-    text-decoration: none;
-    transition: 0.25s ease;
-    outline: none;
-    text-align: right;
-}
-#newsArticleTitle:hover,
-#newsArticleTitle:focus {
-    text-shadow: 0px 0px 20px white;
-}
-#newsArticleTitle:active {
-    color: #c7c7c7;
-    text-shadow: 0px 0px 20px #c7c7c7;
-}
-
-/* News meta container. */
-#newsMetaContainer {
-    display: flex;
-    flex-direction: column;
-}
-
-/* Date and author wrappers. */
-#newsArticleDateWrapper,
-#newsArticleAuthorWrapper {
-    display: flex;
-    justify-content: flex-end;
-}
-
-/* Date and author shared styles. */
-#newsArticleDate,
-#newsArticleAuthor {
-    display: inline-block;
-    font-size: 10px;
-    padding: 0px 5px;
-    font-weight: bold;
-    border-radius: 2px;
-}
-
-/* Date styles. */
-#newsArticleDate {
-    background: white;
-    color: black;
-    margin-top: 5px;
-}
-
-/* Author styles. */
-#newsArticleAuthor {
-    background: #a02d2a;
-}
-
-/* News article comments styles. */
-#newsArticleComments {
-    margin-top: 5px;
-    display: inline-block;
-    font-size: 10px;
-    color: #ffffff;
-    text-decoration: none;
-    transition: 0.25s ease;
-    outline: none;
-    text-align: right;
-}
-#newsArticleComments:focus,
-#newsArticleComments:hover {
-    color: #e0e0e0;
-}
-#newsArticleComments:active {
-    color: #c7c7c7;
-}
-
-/* Article content container (right). */
-#newsArticleContainer {
-    width: calc(100% - 25px);
     height: 100%;
-    margin: 0px 0px 0px 25px;
 }
-
-/* Article content styles. */
-#newsArticleContentScrollable {
-    font-size: 12px;
-    overflow-y: scroll;
-    height: 100%;
-    padding: 0px 15px 0px 15px;
-}
-#newsArticleContentScrollable img,
-#newsArticleContentScrollable iframe {
-    max-width: 95%;
-    display: block;
-    margin: 0 auto;
-}
-#newsArticleContentScrollable a {
-    color: rgba(202, 202, 202, 0.75);
-    transition: 0.25s ease;
-    outline: none;
-}
-#newsArticleContentScrollable a:hover,
-#newsArticleContentScrollable a:focus {
-    color: rgba(255, 255, 255, 0.75);
-}
-#newsArticleContentScrollable a:active {
-    color: rgba(165, 165, 165, 0.75);
-}
-#newsArticleContentScrollable::-webkit-scrollbar {
-    width: 2px;
-}
-#newsArticleContentScrollable::-webkit-scrollbar-track {
-    display: none;
-}
-#newsArticleContentScrollable::-webkit-scrollbar-thumb {
-    border-radius: 10px;
-    box-shadow: inset 0 0 10px rgba(255, 255, 255, 0.50);
-}
-.bbCodeSpoilerButton {
-    background: none;
-    border: none;
-    outline: none;
-    cursor: pointer;
-    font-size: 16px;
-    transition: 0.25s ease;
-    width: 100%;
-    border-bottom: 1px solid white;
-    padding-bottom: 15px;
-}
-.bbCodeSpoilerButton:hover,
-.bbCodeSpoilerButton:focus {
-    text-shadow: 0px 0px 20px #ffffff, 0px 0px 20px #ffffff, 0px 0px 20px #ffffff;
-}
-.bbCodeSpoilerButton:active {
-    color: #c7c7c7;
-    text-shadow: 0px 0px 20px #c7c7c7, 0px 0px 20px #c7c7c7, 0px 0px 20px #c7c7c7;
-}
-.bbCodeSpoilerText {
-    display: none;
-    padding: 15px 0px;
-    border-bottom: 1px solid white;
-}
-
-
-#newsArticleContentWrapper {
-    width: 80%;
-}
-
-.newsArticleSpacerTop {
-    height: 15px;
-}
-
-/* Div to add spacing at the end of a news article. */
-.newsArticleSpacerBot {
-    height: 30px;
-}
-
-/* News navigation container. */
-#newsNavigationContainer {
-    display: flex;
-    justify-content: center;
-    align-items: center;
-    margin-bottom: 10px;
-    -webkit-user-select: none;
-    position: absolute;
-    bottom: 15px;
-    right: 0px;
-}
-
-/* Navigation status span. */
-#newsNavigationStatus {
-    font-size: 12px;
-    margin: 0px 15px;
-}
-
-/* Left and right navigation button styles. */
-#newsNavigateLeft,
-#newsNavigateRight {
-    background: none;
-    border: none;
-    outline: none;
-    height: 20px;
-    cursor: pointer;
-}
-#newsNavigateLeft:hover #newsNavigationLeftSVG,
-#newsNavigateLeft:focus #newsNavigationLeftSVG,
-#newsNavigateRight:hover #newsNavigationRightSVG,
-#newsNavigateRight:focus #newsNavigationRightSVG {
-    -webkit-filter: drop-shadow(0px 0px 2px #fff);
-}
-#newsNavigateLeft:active #newsNavigationLeftSVG .arrowLine,
-#newsNavigateRight:active #newsNavigationRightSVG .arrowLine {
-    stroke: #c7c7c7;
-}
-#newsNavigateLeft:active #newsNavigationLeftSVG,
-#newsNavigateRight:active #newsNavigationRightSVG {
-    -webkit-filter: drop-shadow(0px 0px 2px #c7c7c7);
-}
-#newsNavigateLeft:disabled #newsNavigationLeftSVG .arrowLine,
-#newsNavigateRight:disabled #newsNavigationRightSVG .arrowLine {
-    stroke: rgba(255, 255, 255, 0.75);
-}
-#newsNavigationLeftSVG {
-    transform: rotate(-90deg);
-    width: 15px;
-}
-#newsNavigationRightSVG {
-    transform: rotate(90deg);
-    width: 15px;
-}
-
-/* News error (message) container. */
-#newsErrorContainer {
-    height: 100%;
-    display: flex;
-    align-items: center;
-    flex-direction: column;
-    justify-content: center;
-}
-#newsErrorFailed {
-    display: flex;
-    align-items: center;
-    flex-direction: column;
-    justify-content: center;
-}
-
-/* News error content (message). */
-.newsErrorContent {
-    font-size: 20px;
-}
-#newsErrorLoading {
-    display: flex;
-    width: 168.92px;
-}
-#nELoadSpan {
-    white-space: pre;
-}
-/* News error retry button styles. */
-#newsErrorRetry {
-    font-size: 12px;
-    font-weight: bold;
-    cursor: pointer;
-    background: none;
-    border: none;
-    outline: none;
-    transition: 0.25s ease;
-}
-#newsErrorRetry:focus,
-#newsErrorRetry:hover {
-    text-shadow: 0px 0px 20px white;
-}
-#newsErrorRetry:active {
-    color: #c7c7c7;
-    text-shadow: 0px 0px 20px #c7c7c7;
-}
-
-/*******************************************************************************
- *                                                                             *
- * Landing View (Top Styles)                                                   *
- *                                                                             *
- ******************************************************************************/
 
 /* * *
-* Landing View (Top Styles) | Left Content
+* Landing View | News pane (left)
 * * */
 
-/* Logo image. */
-#image_seal {
-    height: 70px;
-    width: auto;
-    position: relative;
-    border: 2px solid white;
-    box-sizing: border-box;
-    border-radius: 50%;
+#newsPane {
+    flex: 0 0 320px;
+    width: 320px;
+    border-right: 1px solid var(--dodo-line);
+    padding: 24px 22px 18px;
+    display: flex;
+    flex-direction: column;
+    overflow-y: auto;
 }
 
-/* Logo container styles. */
 #image_seal_container {
+    display: flex;
+    align-items: center;
+    gap: 11px;
     position: relative;
-    height: 70px;
-    width: 70px;
-    border-radius: 50%;
-    margin-top: 50px;
 }
 
-/* Logo container styles w/ update. */
-#image_seal_container[update]{
-    cursor: pointer
-}
-#image_seal_container[update]:before,
-#image_seal_container[update]:after {
-    cursor: pointer;
-    position: absolute;
-    content: '';
-    height: 100%;
-    width: 100%;
-    top: 0%;
-    left: 0%;
-    border-radius: 50%;
-    box-shadow: 0 0 15px #43c628;
-    animation: glow-grow 4s ease-out infinite;
-    background: rgba(0, 0, 0, 0.15);
-}
-#image_seal_container[update]:before {
-    animation-delay: 2s;
+#image_seal {
+    width: 30px;
+    height: 30px;
+    border-radius: 9px;
 }
 
-/* Update available tooltip styles. */
-#updateAvailableTooltip {
-    cursor: pointer;
-    visibility: hidden;
-    opacity: 0;
-    width: 100px;
-    height: 15px;
-    background-color: rgb(0, 0, 0);
-    color: #fff;
-    text-align: center;
-    border-radius: 4px;
-    padding: 2px;
-    position: absolute;
-    z-index: 1;
-    top: 115%;
-    left: -17.5px;
+#brandName {
     font-family: 'Avenir Medium';
-    font-size: 12px;
-    transition: visibility 0s linear 0.25s, opacity 0.25s ease;
-}
-#updateAvailableTooltip::after {
-    content: " ";
-    position: absolute;
-    left: 50%;
-    bottom: 100%;
-    margin-left: -5px;
-    border-width: 5px;
-    border-style: solid;
-    border-color: transparent transparent rgb(0, 0, 0) transparent;
-}
-#image_seal_container[update]:hover #updateAvailableTooltip {
-    visibility: visible;
-    opacity: 1;
-    transition-delay: 0s;
+    font-size: 17px;
+    font-weight: 700;
+    letter-spacing: .2px;
 }
 
-/* Update available animation. */
-@keyframes glow-grow {
-    0% {
-        opacity: 0;
-        transform: scale(1);
-    }
-    80% {
-        opacity: 1;
-    }
-    100% {
-        transform: scale(1.5);
-        opacity: 0;
-    }
+#updateAvailableTooltip {
+    display: none;
+}
+
+.newsPaneLabel {
+    margin: 26px 0 4px;
+    font-size: 11px;
+    letter-spacing: .18em;
+    color: var(--dodo-muted);
+    text-transform: uppercase;
+}
+
+.newsItem {
+    padding: 16px 0;
+    border-bottom: 1px solid var(--dodo-line);
+}
+
+.newsItemDate {
+    font-size: 11px;
+    color: var(--dodo-muted);
+}
+
+.newsItemTitle {
+    margin: 6px 0 4px;
+    font-family: 'Avenir Medium';
+    font-size: 15px;
+    font-weight: 700;
+    line-height: 1.3;
+}
+
+.newsItemText {
+    font-size: 13px;
+    line-height: 1.5;
+    color: var(--dodo-muted);
+}
+
+.newsPaneEmpty {
+    padding: 16px 0;
+    font-size: 13px;
+    color: var(--dodo-muted);
 }
 
 /* * *
-* Landing View (Bottom Styles) | Right Content
+* Landing View | Main pane (right)
 * * */
 
-/*  Wrapper container for top, right content. */
-#rightContainer {
+#mainPane {
+    flex: 1;
+    min-width: 0;
     display: flex;
     flex-direction: column;
-    position: relative;
-    top: 50px;
-    align-items: flex-start;
-    height: calc(100% - 50px);
+    padding: 18px 26px 16px;
 }
 
-/* Right hand user content container. */
+#topBar {
+    display: flex;
+    justify-content: flex-end;
+    align-items: center;
+    min-height: 48px;
+}
+
 #user_content {
     display: flex;
     align-items: center;
-    justify-content: center;
-    box-sizing: border-box;
-    position: relative;
+    gap: 12px;
 }
 
-/* User profile avatar container. */
-#avatarContainer {
-    border-radius: 50%;
-    border: 2px solid #cad7e1;
-    box-sizing: border-box;
-    background: rgba(1, 2, 1, 0.5);
-    height: 70px;
-    width: 70px;
-    box-shadow: 0px 0px 10px 0px rgb(0, 0, 0);
-    overflow: hidden;
-    position: relative;
-    background-position: center;
-    background-repeat: no-repeat;
-    background-size: contain;
-}
-
-/* Avatar edit overlay. */
-#avatarOverlay {
-    opacity: 0;
-    position: absolute;
-    z-index: 1;
+#userMeta {
     display: flex;
-    justify-content: center;
-    align-items: center;
-    transition: 0.25s ease;
-    font-weight: bold;
-    letter-spacing: 2px;
-    background-color: rgba(0, 0, 0, 0.35);
-    -webkit-user-select: none;
-    border: none;
-    cursor: pointer;
-    width: 100%;
-    height: 100%;
-    border-radius: 50%;
-}
-#avatarOverlay:hover,
-#avatarOverlay:focus {
-    opacity: 1;
-}
-#avatarOverlay:active {
-    background-color: rgba(0, 0, 0, 0.45);
+    flex-direction: column;
+    align-items: flex-end;
+    line-height: 1.25;
 }
 
-/* User profile name text. */
 #user_text {
-    font-size: 12px;
-    min-width: 135px;
-    font-weight: 900;
-    letter-spacing: 1px;
-    text-shadow: 0px 0px 20px black;
-    position: absolute;
-    right: 95px;
-    text-align: right;
-    -webkit-user-select: initial;
+    font-family: 'Avenir Medium';
+    font-size: 14px;
+    font-weight: 700;
 }
 
-/* Social media icon content container. */
-#mediaContent {
-    position: relative;
+#user_sub {
+    font-size: 11px;
+    color: var(--dodo-muted);
+}
+
+#avatarContainer {
+    width: 42px;
+    height: 42px;
+    border-radius: 12px;
+    border: 1px solid var(--dodo-line);
+    background-color: var(--dodo-panel);
+    background-size: cover;
+    background-position: center;
+}
+
+#avatarOverlay {
+    width: 42px;
+    height: 42px;
+    border-radius: 12px;
+    border: 1px solid var(--dodo-line);
+    background: var(--dodo-panel);
     display: flex;
-    flex-direction: column;
-    margin-top: 25px;
-    height: calc(100% - 95px);
-    width: 70px;
     align-items: center;
-}
-
-/* Social Media Icon division containers. */
-#internalMedia, #externalMedia {
-    display: flex;
-    flex-direction: column;
-}
-
-/* Container object which wraps an icon to ensure fluid transitions. */
-.mediaContainer {
-    display: flex;
     justify-content: center;
-    align-items: center;
-    height: 27px;
-}
-
-/* Divider bar between the external and internal icons. */
-.mediaDivider {
-    height: 1px;
-    width: 14px;
-    background: rgb(255, 255, 255);
-    margin: 10px 0px;
-}
-
-/* Social media icon shared styles. */
-.mediaSVG {
-    fill: #ffffff;
-    height: 12px;
-    transition: 0.25s ease;
     cursor: pointer;
-    height: 12px;
-    width: 25px;
-}
-.mediaSVG:hover,
-.mediaURL:focus .mediaSVG,
-.mediaSVG:active {
-    height: 20px;
+    transition: border-color .2s ease, background .2s ease;
 }
 
-/* Social media URL shared styles. */
-.mediaURL {
-    outline: none;
+#avatarOverlay:hover {
+    border-color: var(--dodo-accent);
+    background: var(--dodo-accent-soft);
 }
 
-/* Internal media button shared styles. */
-.mediaButton {
-    background: none;
-    border: none;
-    padding: 0px;
-    display: flex;
-    align-items: center;
-    outline: none;
-}
-
-#settingsMediaContainer {
-    position: relative;
-}
-
-/* Settings icon colors. */
-#settingsSVG {
-    stroke: #ffffff;
-    height: 15px;
-}
-.mediaButton:hover #settingsSVG,
-.mediaButton:focus #settingsSVG,
-.mediaButton:active #settingsSVG {
-    height: 23px;
-}
-
-/* Settings tooltip styles. */
-#settingsTooltip {
-    visibility: hidden;
-    opacity: 0;
-    width: 75px;
-    height: 20px;
-    background-color: rgba(0, 0, 0, 0.75);
-    text-align: center;
-    border-radius: 4px;
-    position: absolute;
-    z-index: 1;
-    right: 130%;
-    font-size: 12px;
-    line-height: 20px;
-    transition: visibility 0s linear 0.25s, opacity 0.25s ease;
-}
-#settingsTooltip::after {
-    content: " ";
-    position: absolute;
-    top: 50%;
-    left: 100%;
-    margin-top: -5px;
-    border-width: 5px;
-    border-style: solid;
-    border-color: transparent transparent transparent rgba(0, 0, 0, 0.75);
-}
-.mediaButton:hover #settingsTooltip,
-.mediaButton:focus #settingsTooltip,
-.mediaButton:active #settingsTooltip {
-    visibility: visible;
-    opacity: 1;
-    transition-delay:0s;
-}
-
-/* X icon colors. */
-#xSVG:hover,
-#xURL:focus #xSVG {
-    fill: #000000;
-}
-#xSVG:active {
-    fill: #090909;
-}
-
-/* Instagram icon colors. */
-#instagramSVG:hover,
-#instagramURL:focus #instagramSVG {
-    fill: url('#instaFill')
-    /*fill: radial-gradient(circle at 30% 107%, #fdf497 0%, #fdf497 5%, #fd5949 45%, #d6249f 60%, #285AEB 90%); */
-}
-#instagramSVG:active {
-    fill: url('#instaFill')
-}
-
-/* Youtube icon colors. */
-#youtubeSVG:hover,
-#youtubeURL:focus #youtubeSVG {
-    fill: #f00;
-}
-#youtubeSVG:active {
-    fill: #ea0202;
-}
-
-/* Discord icon colors. */
-#discordSVG:hover,
-#discordURL:focus #discordSVG {
-    fill: #7288d9;
-}
-#discordSVG:active {
-    fill: #657ac4;
-}
-
-/*******************************************************************************
- *                                                                             *
- * Landing View (Bottom Styles)                                                *
- *                                                                             *
- ******************************************************************************/
-
-/* Style for a general label on the bottom of the landing view. */
-.bot_label {
-    font-size: 9px;
-    letter-spacing: 1px;
-    font-weight: bold;
-    text-shadow: 0px 0px 0px #bebcbb;
-}
-
-/* Divider used on the bottom of the landing view. */
-.bot_divider {
-    height: 25px;
-    width: 2px;
-    background: rgba(107, 105, 105, 0.7);
-    margin-left: 20px;
-    margin-right: 20px;
+#avatarOverlay .avatarGear {
+    width: 17px;
+    height: 17px;
 }
 
 /* * *
-* Landing View (Bottom Styles) | Left Content
+* Landing View | Center stack
 * * */
 
-/* Maintains maximum width on the status bar. */
+#centerStack {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    gap: 16px;
+}
+
+#packTabs {
+    display: inline-flex;
+    gap: 4px;
+    padding: 6px;
+    border: 1px solid var(--dodo-line);
+    border-radius: 15px;
+    background: var(--dodo-panel);
+}
+
+.packTab {
+    display: flex;
+    align-items: center;
+    gap: 9px;
+    padding: 9px 18px;
+    border: none;
+    border-radius: 11px;
+    background: transparent;
+    color: var(--dodo-muted);
+    font-family: 'Avenir Medium';
+    font-size: 14px;
+    font-weight: 700;
+    cursor: pointer;
+    transition: background .2s ease, color .2s ease;
+}
+
+.packTab:hover {
+    color: var(--dodo-text);
+}
+
+.packTab.active {
+    background: var(--dodo-accent);
+    color: #fff;
+}
+
+.packTabIcon {
+    width: 20px;
+    height: 20px;
+    border-radius: 6px;
+}
+
+.packTabVer {
+    font-size: 12px;
+    font-weight: 600;
+    opacity: .65;
+}
+
+#packTitle {
+    margin: 6px 0 0;
+    font-family: 'Avenir Medium';
+    font-size: 38px;
+    font-weight: 800;
+    letter-spacing: -.5px;
+    text-align: center;
+}
+
+#packMeta {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    font-size: 13px;
+    color: var(--dodo-muted);
+}
+
 #server_status_wrapper {
     display: inline-flex;
-    width: 75px;
+    align-items: center;
+    gap: 7px;
 }
 
-/* Span which displays the player count of the selected server. */
-#player_count {
-    color: #949494;
-    font-size: 8px;
-    font-weight: 900;
-    text-shadow: 0px 0px 20px #949494;
-    margin-left: 10px;
+#serverStatusDot {
+    width: 7px;
+    height: 7px;
+    border-radius: 50%;
+    background: #5a5f6d;
+    transition: background .3s ease, box-shadow .3s ease;
 }
 
-/* Wrapper container for the mojang status bar. */
-#mojangStatusWrapper {
-    position: relative;
-    display: flex;
-    cursor: pointer;
+#serverStatusDot.online {
+    background: var(--dodo-accent);
+    box-shadow: 0 0 8px var(--dodo-accent);
 }
 
-/* Icon which displays the status of the mojang services. */
-#mojang_status_icon {
-    font-size: 30px;
-    color: #848484;
-    margin-left: 15px;
-    font-family: 'sans-serif';
+.metaSep {
+    opacity: .45;
 }
 
-/* Tooltip which displays more details about the mojang statuses. */
-#mojangStatusTooltip {
-    position: absolute;
-    visibility: hidden;
-    opacity: 0;
-    width: 145px;
-    min-height: 150px;
-    background-color: rgba(0, 0, 0, 0.75);
-    color: #fff;
-    border-radius: 4px;
-    padding: 5px 10px;
-    z-index: 1;
-    font-family: 'Avenir Medium';
-    font-size: 12px;
-    transition: visibility 0s linear 0.25s, opacity 0.25s ease;
-    bottom: calc(100% + 15px);
-    transform: translateX(-50%);
-    margin-left: 50%;
-    box-shadow: 0px 0px 20px rgb(0, 0, 0);
-    cursor: default;
-}
-#mojangStatusTooltip:after {
-    content: " ";
-    position: absolute;
-    left: 50%;
-    top: 100%;
-    margin-left: -5px;
-    border-width: 5px;
-    border-style: solid;
-    border-color: rgba(0, 0, 0, 0.75) transparent transparent transparent;
-}
-#mojangStatusWrapper:hover #mojangStatusTooltip {
-    visibility: visible;
-    opacity: 1;
-    transition-delay: 0s;
-}
-
-/* Tooltip title for the mojang statuses. */
-#mojangStatusTooltipTitle {
-    width: 100%;
-    text-align: center;
-    margin-bottom: 5px;
-    letter-spacing: 1px;
-}
-
-/* Wrapper container for the non essential services title. */
-#mojangStatusNEContainer {
+#updateSlot {
+    min-height: 34px;
     display: flex;
     align-items: center;
-    margin: 10px 0px;
 }
 
-/* White bar which surrounds the non essential service title. */
-.mojangStatusNEBar {
-    height: 1px;
-    width: 100%;
-    background: white;
-}
-
-/* Non essential service title text. */
-#mojangStatusNETitle {
-    font-size: 10px;
-    padding: 0px 3px;
-    text-align: center;
-    letter-spacing: 1px;
-}
-
-/* Wrapper container for mojang service information. */
-.mojangStatusContainer {
-    display: flex;
-}
-
-/* Displays the name of the mojang service. */
-.mojangStatusName {
-    width: 100%;
-    font-size: 10px;
-    letter-spacing: 1px;
-    line-height: 12px;
-    padding: 6px 0px;
-}
-
-/* Displays the status of the mojang service. */
-.mojangStatusIcon {
-    margin-right: 10px;
-    font-size: 18.5px;
-    color: #848484;
-}
-
-/* * *
-* Landing View (Bottom Styles) | Center Content
-* * */
-
-/* Button which opens the news view. */
-#newsButton {
-    background: none;
-    border: none;
+#updateNowButton {
+    padding: 8px 18px;
+    border-radius: 11px;
+    border: 1px solid var(--dodo-accent);
+    background: var(--dodo-accent-soft);
+    color: var(--dodo-text);
+    font-family: 'Avenir Medium';
+    font-size: 13px;
+    font-weight: 700;
     cursor: pointer;
-    outline: none;
-}
-#newsButton:hover #newsButtonText,
-#newsButton:focus #newsButtonText {
-    text-shadow: 0px 0px 20px #fff, 0px 0px 20px #fff;
-}
-#newsButton:active {
-    color: #c7c7c7;
-    text-shadow: 0px 0px 20px #c7c7c7, 0px 0px 20px #c7c7c7;
+    transition: background .2s ease;
 }
 
-#newsButton:hover #newsButtonSVG,
-#newsButton:focus #newsButtonSVG {
-    -webkit-filter: drop-shadow(0px 0px 2px #fff);
-}
-#newsButton:active #newsButtonSVG .arrowLine {
-    stroke: #c7c7c7;
-}
-#newsButton:active #newsButtonSVG {
-    -webkit-filter: drop-shadow(0px 0px 2px #c7c7c7);
-}
-#newsButton:disabled #newsButtonSVG .arrowLine {
-    stroke: rgba(255, 255, 255, 0.75);
+#updateNowButton:hover {
+    background: rgba(59, 130, 246, .3);
 }
 
-/* Icon which indicates there is new news. */
-#newsButtonAlert {
-    width: 5px;
-    height: 5px;
-    position: absolute;
-    border-radius: 50%;
-    background: red;
-    right: -1px;
-    top: 50%;
-}
-
-/* Arrow image which floats above the news button. */
-#newsButtonSVG {
-    height: 11px;
-    margin-left: -2px;
-    transition: 0.25s ease;
-}
-
-/* Span which contains the news button text. */
-#newsButtonText {
-    color: white;
-    font-weight: 900;
-    letter-spacing: 2px;
-    text-shadow: 0px 0px 0px #bebcbb;
-    font-size: 11px;
-    line-height: 30px;
+#launch_content {
     display: flex;
-    transition: 0.25s ease;
+    justify-content: center;
+    width: 340px;
 }
 
-/* * *
-* Landing View (Bottom Styles) | Right Content
-* * */
-
-/* Main launch content container. */
-#landingContainer > #lower > #right #launch_content {
-    position: relative;
-    top: 25px;
-    display: inline-flex;
-}
-
-/* The launch button. */
 #launch_button {
-    background: none;
+    width: 100%;
+    height: 62px;
     border: none;
+    border-radius: 16px;
+    background: var(--dodo-accent);
+    color: #fff;
+    font-family: 'Avenir Medium';
+    font-size: 20px;
+    font-weight: 800;
+    letter-spacing: .3px;
     cursor: pointer;
-    font-weight: 900;
-    letter-spacing: 2px;
-    text-shadow: 0px 0px 0px #bebcbb;
-    font-size: 20px;
-    padding: 0px;
-    transition: 0.25s ease;
-    outline: none;
+    transition: background .2s ease, transform .1s ease, opacity .2s ease;
 }
-#launch_button:hover,
-#launch_button:focus {
-    text-shadow: 0px 0px 20px #fff, 0px 0px 20px #fff;
+
+#launch_button:hover:not(:disabled) {
+    background: #5b97ff;
 }
-#launch_button:active {
-    color: #c7c7c7;
-    text-shadow: 0px 0px 20px #c7c7c7, 0px 0px 20px #c7c7c7;
+
+#launch_button:active:not(:disabled) {
+    transform: translateY(1px);
 }
+
 #launch_button:disabled {
-    color: #c7c7c7;
+    opacity: .45;
     cursor: default;
-    pointer-events: none;
 }
 
-/* Launch details main container, hidden until launch processing begins. */
 #launch_details {
-    position: relative;
-    top: 25px;
     display: none;
-}
- 
-/* Left side of launch details container, displays percentage and a divider. */
-#launch_details_left {
-    display: flex;
-}
-
-/* Span which displays percentage complete. */
-#launch_progress_label {
-    font-weight: 900;
-    letter-spacing: 1px;
-    text-shadow: 0px 0px 0px #bebcbb;
-    font-size: 20px;
-    min-width: 53.21px;
-    max-width: 53.21px;
-    text-align: right;
+    flex-direction: column;
+    align-items: center;
+    gap: 9px;
+    width: 340px;
 }
 
-/* Right side of launch details container, displays progress bar and details. */
+#launch_details_left,
 #launch_details_right {
     display: flex;
     flex-direction: column;
-    justify-content: center;
+    align-items: center;
+    gap: 9px;
+    width: 100%;
 }
 
-/* Button which opens the server selection view. */
-#server_selection_button {
-    background: none;
-    border: none;
-    outline: none;
-    cursor: pointer;
-    line-height: 24px;
-    padding: 0px;
-    transition: 0.25s ease;
-}
-#server_selection_button:hover,
-#server_selection_button:focus {
-    text-shadow: 0px 0px 20px #fff, 0px 0px 20px #fff, 0px 0px 20px #fff;
-}
-#server_selection_button:active {
-    color: #c7c7c7;
-    text-shadow: 0px 0px 20px #c7c7c7, 0px 0px 20px #c7c7c7, 0px 0px 20px #c7c7c7;
-}
-
-/* Progress bar styles. */
-#launch_progress[value] {
-    height: 3px;
-    width: 265px;
+#launch_progress {
     -webkit-appearance: none;
-}
-#launch_progress[value]::-webkit-progress-bar {
-    background-color: transparent;
-}
-#launch_progress[value]::-webkit-progress-value {
-    background-color: #fff;
+    appearance: none;
+    width: 100%;
+    height: 6px;
+    border: none;
+    border-radius: 999px;
+    background: var(--dodo-panel);
+    overflow: hidden;
 }
 
-/* Span which displays information about the status of the launch process. */
+#launch_progress::-webkit-progress-bar {
+    background: var(--dodo-panel);
+    border-radius: 999px;
+}
+
+#launch_progress::-webkit-progress-value {
+    background: var(--dodo-accent);
+    border-radius: 999px;
+    transition: width .3s ease;
+}
+
+#launch_progress_label,
 #launch_details_text {
-    font-size: 11px;
-    text-overflow: ellipsis;
-    white-space: nowrap;
-    overflow: hidden;
+    font-size: 12px;
+    color: var(--dodo-muted);
+}
+
+.bot_divider {
+    display: none;
+}
+
+/* Keeps the launch caption line from jumping when the text is empty. */
+#launchCaption {
+    min-height: 16px;
+    font-size: 12px;
+    color: var(--dodo-muted);
+}
+
+/* * *
+* Landing View | Bottom bar
+* * */
+
+#bottomBar {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 16px;
+    padding-top: 14px;
+    border-top: 1px solid var(--dodo-line);
+    font-size: 12px;
+    color: var(--dodo-muted);
+}
+
+#donateLink {
+    padding: 6px 14px;
+    border-radius: 999px;
+    border: 1px solid var(--dodo-line);
+    color: var(--dodo-muted);
+    font-size: 12px;
+    font-weight: 700;
+    text-decoration: none;
+    cursor: pointer;
+    transition: border-color .2s ease, color .2s ease;
+}
+
+#donateLink:hover {
+    border-color: #ff5c7a;
+    color: #ff8098;
+}
+
+/* Legacy elements kept for the scripts, not shown in this layout. */
+#mojangStatusWrapper,
+#server_selection_button,
+#newsContainer {
+    display: none !important;
 }
 
 /*******************************************************************************
@@ -3966,56 +3348,12 @@ input:checked + .toggleSwitchSlider:before {
 .rotating {
     animation: rotating 10s linear infinite;
 }
-/* Modpack tab bar (top of landing view). */
-#landingContainer > #upper > #content { flex-direction: column; align-items: flex-start; }
-#packTabs { display: flex; gap: 14px; margin-top: 50px; margin-left: 25px; height: 70px; align-items: center; }
-.packTab { display: flex; align-items: center; gap: 10px; height: 54px; padding: 0px 18px 0px 8px; background: rgba(0, 0, 0, 0.45); border: 2px solid rgba(255, 255, 255, 0.35); border-radius: 12px; color: rgba(255, 255, 255, 0.75); font-family: 'Avenir Medium'; font-size: 14px; letter-spacing: 0.5px; cursor: pointer; outline: none; transition: 0.25s ease; }
-.packTab:hover, .packTab:focus { border-color: rgba(255, 255, 255, 0.75); color: white; background: rgba(0, 0, 0, 0.6); }
-.packTab.active { border-color: #fff; color: white; background: rgba(0, 0, 0, 0.7); box-shadow: 0px 0px 12px rgba(255, 255, 255, 0.45); }
-.packTabIcon { height: 38px; width: 38px; border-radius: 8px; image-rendering: pixelated; }
-
 /* Startup loading screen: DodoShield logo inside the Lottie gradient-ring loader. */
 #loadSpinnerContainer { position: relative; width: 300px; height: 300px; }
 #loadLottie { position: absolute; top: 0; left: 0; width: 100%; height: 100%; }
 #loadCenterImage { position: relative; width: 236px; border-radius: 50%; }
 
-/* Seal logo is a link to the site. */
-#image_seal_container { cursor: pointer; transition: transform 0.2s ease, filter 0.2s ease; }
-#image_seal_container:hover { transform: scale(1.06); filter: drop-shadow(0 0 10px rgba(255, 255, 255, 0.45)); }
-
-/* Update-available button in the top bar. */
-#updateNowButton {
-    display: none;
-    align-items: center;
-    margin: 4px 0 0 25px;
-    padding: 0px 16px;
-    height: 38px;
-    border-radius: 10px;
-    border: none;
-    background: linear-gradient(135deg, #7c5cff, #3ddc97);
-    color: #fff;
-    font-family: 'Avenir Medium';
-    font-size: 13px;
-    font-weight: 700;
-    letter-spacing: 0.5px;
-    cursor: pointer;
-    outline: none;
-    box-shadow: 0px 0px 14px rgba(124, 92, 255, 0.55);
-    animation: updatePulse 1.6s ease-in-out infinite;
-}
-#updateNowButton:hover { filter: brightness(1.12); }
-@keyframes updatePulse {
-    0%, 100% { box-shadow: 0px 0px 10px rgba(124, 92, 255, 0.45); }
-    50% { box-shadow: 0px 0px 22px rgba(61, 220, 151, 0.75); }
-}
-
-/* Avatar hover label ("Налаштування") must fit inside the 70px circle. */
-/* Avatar hover shows a settings gear instead of text (text does not fit the circle). */
-#avatarOverlay { background-color: rgba(0, 0, 0, 0.55); }
-.avatarGear { width: 34px; height: 34px; filter: drop-shadow(0 0 4px rgba(0, 0, 0, 0.8)); transition: transform 0.35s ease; }
-#avatarOverlay:hover .avatarGear { transform: rotate(60deg); }
-
-/* Collapsible required-mods section. */
+/* Collapsible required-mods section (settings view). */
 .settingsModsHeaderCollapsible { cursor: pointer; -webkit-user-select: none; }
 .settingsModsHeaderCollapsible:hover { color: #fff; }
 .settingsModsHeaderArrow { display: inline-block; transition: transform 0.2s ease; margin-right: 4px; }
@@ -4023,147 +3361,6 @@ input:checked + .toggleSwitchSlider:before {
 #settingsReqModsCount { font-size: 12px; opacity: 0.7; }
 #settingsReqModsContent[collapsed] { display: none; }
 
-/* GitHub link in the bottom bar. */
+/* GitHub link in the About tab. */
 #githubLink { cursor: pointer; color: #c7c7c7; transition: color 0.2s ease; }
 #githubLink:hover { color: #fff; }
-
-/* Donate link in the bottom bar. */
-#donateLink { cursor: pointer; color: #ffd24a; transition: color 0.2s ease, text-shadow 0.2s ease; }
-#donateLink:hover { color: #fff; text-shadow: 0 0 8px rgba(255, 210, 74, 0.8); }
-
-/* Bottom bar items must never wrap (fixed 980px window). */
-#landingContainer > #lower .bot_label, #donateLink { white-space: nowrap; }
-#landingContainer > #lower #left #content { display: flex; align-items: center; flex-wrap: nowrap; }
-#donateLink { text-decoration: none; padding: 8px 4px; }
-
-/* The left bottom-bar content overflows into #center; keep it clickable on top. */
-#landingContainer > #lower > #left { z-index: 2; }
-#landingContainer > #lower > #left #content { left: 30px; }
-
-/* Play button must stay on one line ("GAME RUNNING"). */
-#launch_button { white-space: nowrap; }
-#launch_button:disabled { font-size: 16px; }
-
-/* ---------------------------------------------------------------------------
- * Landing relayout: play button in the middle, status pill centered at the
- * bottom, no news panel. Accent colour matches the tab highlight.
- * ------------------------------------------------------------------------- */
-:root { --dodo-accent: #33d4ff; }
-
-/* Tab bar: glass pills with a cyan active state. */
-#packTabs { margin-top: 44px; margin-left: 30px; gap: 20px; }
-.packTab { height: 62px; padding: 0px 22px 0px 10px; border-radius: 14px; font-size: 16px; background: rgba(20, 24, 32, 0.55); border: 2px solid rgba(255, 255, 255, 0.28); backdrop-filter: blur(6px); }
-.packTab:hover, .packTab:focus { border-color: rgba(255, 255, 255, 0.6); background: rgba(20, 24, 32, 0.7); }
-.packTab.active { border-color: var(--dodo-accent); background: rgba(20, 24, 32, 0.75); box-shadow: 0px 0px 14px rgba(51, 212, 255, 0.55), inset 0px 0px 10px rgba(51, 212, 255, 0.15); }
-.packTabIcon { height: 44px; width: 44px; border-radius: 10px; }
-
-/* Play area: fills the remaining space under the tab bar, everything centered. */
-#landingContainer > #upper { height: 100%; position: absolute; top: 0; left: 0; width: 100%; }
-#launchCenter { flex: 1; width: 100%; display: flex; align-items: center; justify-content: center; padding-bottom: 60px; }
-#launch_content { display: inline-flex; flex-direction: column; align-items: center; gap: 12px; }
-#launch_button {
-    padding: 18px 46px;
-    border-radius: 16px;
-    background: rgba(20, 24, 32, 0.55);
-    border: 2px solid rgba(255, 255, 255, 0.28);
-    backdrop-filter: blur(6px);
-    color: var(--dodo-accent);
-    font-size: 40px;
-    font-weight: 900;
-    letter-spacing: 4px;
-    text-shadow: 0px 0px 14px rgba(51, 212, 255, 0.75);
-    box-shadow: 0px 8px 30px rgba(0, 0, 0, 0.45);
-}
-#launch_button:hover, #launch_button:focus { border-color: var(--dodo-accent); text-shadow: 0px 0px 18px rgba(51, 212, 255, 1), 0px 0px 30px rgba(51, 212, 255, 0.6); box-shadow: 0px 0px 22px rgba(51, 212, 255, 0.45), 0px 8px 30px rgba(0, 0, 0, 0.45); }
-#launch_button:active { color: #fff; transform: scale(0.98); }
-#launch_button:disabled { color: rgba(255, 255, 255, 0.55); border-color: rgba(255, 255, 255, 0.18); text-shadow: none; box-shadow: none; font-size: 30px; }
-#server_selection_button { font-size: 16px; letter-spacing: 0.5px; font-family: 'Avenir Medium'; font-weight: 700; color: #fff; text-shadow: 0px 2px 8px rgba(0, 0, 0, 0.8); }
-#launch_details { display: none; top: 0; align-items: center; }
-#launch_progress[value] { width: 320px; }
-#launch_details_text { font-size: 12px; }
-
-/* Bottom status pill, centered. */
-#landingContainer > #lower { position: absolute; bottom: 0; left: 0; width: 100%; height: 110px; justify-content: center; align-items: flex-end; padding-bottom: 28px; box-sizing: border-box; }
-#landingContainer > #lower > #left { width: auto; height: auto; top: 0; }
-#landingContainer > #lower > #left #content {
-    top: 0; left: 0;
-    align-items: center;
-    padding: 0px 26px;
-    height: 56px;
-    border-radius: 14px;
-    background: rgba(20, 24, 32, 0.55);
-    border: 2px solid rgba(255, 255, 255, 0.28);
-    backdrop-filter: blur(6px);
-    box-shadow: 0px 8px 30px rgba(0, 0, 0, 0.45);
-}
-#landingContainer > #lower .bot_label { font-size: 12px; letter-spacing: 1.5px; }
-#server_status_wrapper { width: auto; align-items: center; }
-#player_count { font-size: 11px; margin-left: 10px; }
-#mojang_status_icon { margin-left: 12px; line-height: 24px; }
-#mojangStatusWrapper { align-items: center; }
-#landingContainer > #lower .bot_divider { height: 26px; margin-left: 22px; margin-right: 22px; }
-#donateLink {
-    padding: 8px 16px;
-    border-radius: 10px;
-    color: #ff6a6a;
-    background: rgba(255, 70, 70, 0.14);
-    border: 1px solid rgba(255, 90, 90, 0.5);
-    text-shadow: 0px 0px 8px rgba(255, 90, 90, 0.6);
-}
-#donateLink:hover { color: #fff; background: rgba(255, 70, 70, 0.32); border-color: #ff6a6a; box-shadow: 0px 0px 14px rgba(255, 90, 90, 0.55); }
-#newsContainer { display: none; }
-
-/* Download/launch progress shown as a glass card in place of the play button. */
-#launch_details {
-    flex-direction: column;
-    align-items: center;
-    gap: 10px;
-    padding: 16px 40px;
-    min-width: 320px;
-    border-radius: 16px;
-    background: rgba(20, 24, 32, 0.55);
-    border: 2px solid rgba(255, 255, 255, 0.28);
-    backdrop-filter: blur(6px);
-    box-shadow: 0px 8px 30px rgba(0, 0, 0, 0.45);
-}
-#launch_details_left .bot_divider { display: none; }
-#launch_progress_label { min-width: 0; max-width: none; text-align: center; font-size: 34px; letter-spacing: 2px; color: var(--dodo-accent); text-shadow: 0px 0px 14px rgba(51, 212, 255, 0.75); }
-#launch_details_right { align-items: center; gap: 8px; }
-#launch_progress[value] { width: 320px; height: 6px; border-radius: 3px; overflow: hidden; }
-#launch_progress[value]::-webkit-progress-bar { background-color: rgba(255, 255, 255, 0.15); border-radius: 3px; }
-#launch_progress[value]::-webkit-progress-value { background-color: var(--dodo-accent); border-radius: 3px; box-shadow: 0px 0px 10px rgba(51, 212, 255, 0.8); transition: width 0.25s ease; }
-#launch_details_text { font-family: 'Avenir Medium'; font-size: 12px; letter-spacing: 1px; color: #fff; max-width: 320px; text-align: center; }
-/* Update button sits in a fixed-height slot right above the play button, so the play button never moves. */
-#launchCenter { flex-direction: column; gap: 6px; }
-#updateSlot { height: 48px; display: flex; align-items: center; justify-content: center; }
-#updateNowButton { margin: 0; height: 40px; padding: 0px 22px; font-size: 14px; border-radius: 12px; }
-
-/* ---------------------------------------------------------------------------
- * Landing: three-zone top bar (logo | tabs centered | user), play button
- * centered between the top bar and the bottom pill.
- * ------------------------------------------------------------------------- */
-#landingContainer > #upper {
-    position: absolute; top: 0; left: 0; width: 100%; height: auto;
-    display: grid; grid-template-columns: 1fr auto 1fr; align-items: center;
-    padding: 40px 40px 0px 40px; box-sizing: border-box; z-index: 2;
-}
-#landingContainer > #upper > #left,
-#landingContainer > #upper > #content,
-#landingContainer > #upper > #right { position: static; width: auto; height: auto; display: flex; flex-direction: row; align-items: center; }
-#landingContainer > #upper > #left { justify-content: flex-start; }
-#landingContainer > #upper > #right { justify-content: flex-end; }
-#image_seal_container { margin-top: 0; }
-#rightContainer { top: 0; height: auto; align-items: center; }
-#user_content { gap: 14px; }
-#user_text { position: static; right: auto; min-width: 0; font-size: 13px; }
-#packTabs { margin: 0; height: auto; gap: 16px; }
-.packTab { height: 60px; padding: 0px 18px 0px 8px; font-size: 15px; gap: 10px; }
-.packTabIcon { width: 42px; height: 42px; }
-.packTabName { white-space: nowrap; }
-.packTabVer { font-size: 12px; opacity: 0.6; letter-spacing: 0; }
-.packTab.active .packTabVer { opacity: 0.8; }
-
-#launchCenter { position: absolute; left: 0; right: 0; top: 110px; bottom: 110px; width: auto; padding: 0; display: flex; flex-direction: row; align-items: center; justify-content: center; gap: 0; }
-#launchGroup { position: relative; display: flex; flex-direction: column; align-items: center; }
-#updateSlot { position: absolute; bottom: 100%; left: 50%; transform: translateX(-50%); height: auto; margin-bottom: 14px; }
-#updateNowButton { white-space: nowrap; }

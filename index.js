@@ -338,8 +338,8 @@ const devHidden = isDev && process.env.DODO_HIDDEN === '1'
 function createWindow() {
 
     win = new BrowserWindow({
-        width: 980,
-        height: 552,
+        width: 1180,
+        height: 720,
         icon: getPlatformIcon('SealCircle'),
         frame: false,
         show: !devHidden,
@@ -349,7 +349,7 @@ function createWindow() {
             contextIsolation: false,
             offscreen: devHidden
         },
-        backgroundColor: '#171614'
+        backgroundColor: '#0c0c11'
     })
     remoteMain.enable(win.webContents)
     if (devHidden) {
@@ -379,7 +379,7 @@ function createWindow() {
 
     win.removeMenu()
 
-    // Fixed window size: the layout is designed for 980x552 and breaks when shrunk.
+    // Fixed window size: the layout is designed for 1180x720 and breaks when shrunk.
     win.resizable = false
     win.setMaximizable(false)
     win.setFullScreenable(false)

@@ -72,8 +72,10 @@ async function showMainUI(data){
     updateSelectedServer(data.getServerById(ConfigManager.getSelectedServer()))
     refreshServerStatus()
     setTimeout(() => {
-        document.getElementById('frameBar').style.backgroundColor = 'rgba(0, 0, 0, 0.5)'
-        document.body.style.backgroundImage = `url('assets/images/backgrounds/${document.body.getAttribute('bkid')}.jpg')`
+        // Flat dark title bar and page background - the landing view no longer
+        // sits on top of a Minecraft screenshot.
+        document.getElementById('frameBar').style.backgroundColor = '#0c0c11'
+        document.body.style.backgroundColor = '#0c0c11'
         $('#main').show()
 
         const isLoggedIn = Object.keys(ConfigManager.getAuthAccounts()).length > 0

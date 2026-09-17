@@ -354,3 +354,11 @@ gameNotPurchasedTitle = "Error During Login:<br>Game Not Purchased"
 gameNotPurchasedDesc = "The account you are trying to login with has not purchased a copy of Minecraft. You may purchase a copy on <a href=\"https://minecraft.net/\">Minecraft.net</a>"
 unknownErrorTitle = "Unknown Error During Login"
 unknownErrorDesc = "An unknown error has occurred. Please see the console for details."
+
+[js.landing.footer]
+launcherVersion = "Launcher {version}"
+javaRam = "Java {java} · {ram} RAM"
+
+[js.landing.newsPane]
+empty = "No news yet"
+failed = "Could not load the news"

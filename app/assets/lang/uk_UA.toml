@@ -353,3 +353,11 @@ gameNotPurchasedTitle = "Помилка входу:<br>гру не куплен�
 gameNotPurchasedDesc = "Акаунт, яким ви входите, не має купленої копії Minecraft. Купити гру можна на <a href=\"https://minecraft.net/\">Minecraft.net</a>"
 unknownErrorTitle = "Невідома помилка під час входу"
 unknownErrorDesc = "Сталася невідома помилка. Деталі — у консолі."
+
+[js.landing.footer]
+launcherVersion = "Лаунчер {version}"
+javaRam = "Java {java} · {ram} ОЗП"
+
+[js.landing.newsPane]
+empty = "Новин поки немає"
+failed = "Не вдалося завантажити новини"

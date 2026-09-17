@@ -40,6 +40,50 @@ const launch_details_text     = document.getElementById('launch_details_text')
 const server_selection_button = document.getElementById('server_selection_button')
 const user_text               = document.getElementById('user_text')
 
+// Landing layout elements.
+const packTitle               = document.getElementById('packTitle')
+const packMcVersion           = document.getElementById('packMcVersion')
+const serverStatusDot         = document.getElementById('serverStatusDot')
+const launcherVersionLabel    = document.getElementById('launcherVersionLabel')
+const javaRamLabel            = document.getElementById('javaRamLabel')
+
+launcherVersionLabel.innerHTML = Lang.queryJS('landing.footer.launcherVersion', { version: remote.app.getVersion() })
+
+/**
+ * Fill the pack name, Minecraft version and the Java/RAM line of the footer.
+ *
+ * @param {HeliosServer} serv The selected server, null when nothing is selected.
+ */
+function updatePackHeader(serv){
+    if(serv == null){
+        packTitle.innerHTML = Lang.queryJS('landing.selectedServer.noSelection')
+        packMcVersion.innerHTML = 'MC —'
+        javaRamLabel.innerHTML = ''
+        return
+    }
+    packTitle.innerHTML = serv.rawServer.name
+    packMcVersion.innerHTML = 'MC ' + serv.rawServer.minecraftVersion
+    const java = serv.effectiveJavaOptions != null ? serv.effectiveJavaOptions.suggestedMajor : null
+    javaRamLabel.innerHTML = Lang.queryJS('landing.footer.javaRam', {
+        java: java != null ? java : '—',
+        ram: ramLabel(ConfigManager.getMaxRAM(serv.rawServer.id))
+    })
+}
+
+/**
+ * Turn a memory setting ('6G', '4096M') into gigabytes for the footer.
+ *
+ * @param {string} raw The configured max RAM.
+ */
+function ramLabel(raw){
+    const match = /^(\d+(?:\.\d+)?)([GM])$/i.exec(String(raw).trim())
+    if(match == null){
+        return String(raw)
+    }
+    const gb = match[2].toUpperCase() === 'G' ? Number(match[1]) : Number(match[1]) / 1024
+    return (Number.isInteger(gb) ? gb : gb.toFixed(1)) + ' ГБ'
+}
+
 const loggerLanding = LoggerUtil.getLogger('Landing')
 
 /* Launch Progress Wrapper Functions */
@@ -177,6 +221,7 @@ function updateSelectedServer(serv){
     ConfigManager.setSelectedServer(serv != null ? serv.rawServer.id : null)
     ConfigManager.save()
     server_selection_button.innerHTML = '&#8226; ' + (serv != null ? serv.rawServer.name : Lang.queryJS('landing.noSelection'))
+    updatePackHeader(serv)
     for(const tab of document.querySelectorAll('#packTabs .packTab')){
         tab.classList.toggle('active', serv != null && tab.getAttribute('servid') === serv.rawServer.id)
     }
@@ -285,29 +330,33 @@ const refreshServerStatus = async (fade = false) => {
 
     let pLabel = Lang.queryJS('landing.serverStatus.server')
     let pVal = Lang.queryJS('landing.serverStatus.offline')
+    let online = false
 
     try {
 
         const servStat = await ServerStatus.getServerStatus(serv.hostname, serv.port)
-        console.log(servStat)
         pLabel = Lang.queryJS('landing.serverStatus.players')
         pVal = servStat.players.online + '/' + servStat.players.max
+        online = true
 
     } catch (err) {
         loggerLanding.warn('Unable to refresh server status, assuming offline.')
         loggerLanding.debug(err)
     }
+    const applyStatus = () => {
+        document.getElementById('landingPlayerLabel').innerHTML = pLabel
+        document.getElementById('player_count').innerHTML = pVal
+        serverStatusDot.classList.toggle('online', online)
+    }
     if(fade){
         $('#server_status_wrapper').fadeOut(250, () => {
-            document.getElementById('landingPlayerLabel').innerHTML = pLabel
-            document.getElementById('player_count').innerHTML = pVal
+            applyStatus()
             $('#server_status_wrapper').fadeIn(500)
         })
     } else {
-        document.getElementById('landingPlayerLabel').innerHTML = pLabel
-        document.getElementById('player_count').innerHTML = pVal
+        applyStatus()
     }
-    
+
 }
 
 refreshMojangStatuses()
@@ -763,390 +812,86 @@ async function dlAsync(login = true) {
 }
 
 /**
- * News Loading Functions
+ * News
+ *
+ * Posts are read from news.json next to the distribution index, so adding news
+ * needs no new launcher build. Format:
+ *   { "news": [ { "date": "2026-09-17", "title": "...", "text": "..." } ] }
  */
 
-// DOM Cache
-const newsContent                   = document.getElementById('newsContent')
-const newsArticleTitle              = document.getElementById('newsArticleTitle')
-const newsArticleDate               = document.getElementById('newsArticleDate')
-const newsArticleAuthor             = document.getElementById('newsArticleAuthor')
-const newsArticleComments           = document.getElementById('newsArticleComments')
-const newsNavigationStatus          = document.getElementById('newsNavigationStatus')
-const newsArticleContentScrollable  = document.getElementById('newsArticleContentScrollable')
-const nELoadSpan                    = document.getElementById('nELoadSpan')
+const distroManager = require('./assets/js/distromanager')
+const newsList = document.getElementById('newsList')
 
-// News slide caches.
-let newsActive = false
-let newsGlideCount = 0
+function newsDateLabel(raw){
+    const parsed = raw != null ? new Date(raw) : null
+    if(parsed == null || isNaN(parsed.getTime())){
+        return raw != null ? String(raw) : ''
+    }
+    return new Intl.DateTimeFormat('uk-UA', { day: 'numeric', month: 'long' }).format(parsed)
+}
+
+function setNewsMessage(message){
+    newsList.innerHTML = ''
+    const el = document.createElement('div')
+    el.className = 'newsPaneEmpty'
+    el.textContent = message
+    newsList.appendChild(el)
+}
 
 /**
- * Show the news UI via a slide animation.
- * 
- * @param {boolean} up True to slide up, otherwise false. 
+ * Render the news list. Text is inserted as plain text on purpose - the file is
+ * remote, so it must not be able to inject markup into the launcher.
+ *
+ * @param {Array} items Posts from news.json.
  */
-function slide_(up){
-    const lCUpper = document.querySelector('#landingContainer > #upper')
-    const lCLLeft = document.querySelector('#landingContainer > #lower > #left')
-    const lCLCenter = document.querySelector('#landingContainer > #lower > #center')
-    const lCLRight = document.querySelector('#landingContainer > #lower > #right')
-    const newsBtn = document.querySelector('#landingContainer > #lower > #center #content')
-    const landingContainer = document.getElementById('landingContainer')
-    const newsContainer = document.querySelector('#landingContainer > #newsContainer')
-
-    newsGlideCount++
-
-    if(up){
-        lCUpper.style.top = '-200vh'
-        lCLLeft.style.top = '-200vh'
-        lCLCenter.style.top = '-200vh'
-        lCLRight.style.top = '-200vh'
-        newsBtn.style.top = '130vh'
-        newsContainer.style.top = '0px'
-        //date.toLocaleDateString('en-US', {month: 'short', day: 'numeric', year: 'numeric', hour: 'numeric', minute: 'numeric'})
-        //landingContainer.style.background = 'rgba(29, 29, 29, 0.55)'
-        landingContainer.style.background = 'rgba(0, 0, 0, 0.50)'
-        setTimeout(() => {
-            if(newsGlideCount === 1){
-                lCLCenter.style.transition = 'none'
-                newsBtn.style.transition = 'none'
-            }
-            newsGlideCount--
-        }, 2000)
-    } else {
-        setTimeout(() => {
-            newsGlideCount--
-        }, 2000)
-        landingContainer.style.background = null
-        lCLCenter.style.transition = null
-        newsBtn.style.transition = null
-        newsContainer.style.top = '100%'
-        lCUpper.style.top = '0px'
-        lCLLeft.style.top = '0px'
-        lCLCenter.style.top = '0px'
-        lCLRight.style.top = '0px'
-        newsBtn.style.top = '10px'
+function renderNews(items){
+    if(!Array.isArray(items) || items.length === 0){
+        setNewsMessage(Lang.queryJS('landing.newsPane.empty'))
+        return
     }
-}
-
-// Bind news button.
-document.getElementById('newsButton').onclick = () => {
-    // Toggle tabbing.
-    if(newsActive){
-        $('#landingContainer *').removeAttr('tabindex')
-        $('#newsContainer *').attr('tabindex', '-1')
-    } else {
-        $('#landingContainer *').attr('tabindex', '-1')
-        $('#newsContainer, #newsContainer *, #lower, #lower #center *').removeAttr('tabindex')
-        if(newsAlertShown){
-            $('#newsButtonAlert').fadeOut(2000)
-            newsAlertShown = false
-            ConfigManager.setNewsCacheDismissed(true)
-            ConfigManager.save()
-        }
-    }
-    slide_(!newsActive)
-    newsActive = !newsActive
-}
-
-// Array to store article meta.
-let newsArr = null
-
-// News load animation listener.
-let newsLoadingListener = null
-
-/**
- * Set the news loading animation.
- * 
- * @param {boolean} val True to set loading animation, otherwise false.
- */
-function setNewsLoading(val){
-    if(val){
-        const nLStr = Lang.queryJS('landing.news.checking')
-        let dotStr = '..'
-        nELoadSpan.innerHTML = nLStr + dotStr
-        newsLoadingListener = setInterval(() => {
-            if(dotStr.length >= 3){
-                dotStr = ''
-            } else {
-                dotStr += '.'
-            }
-            nELoadSpan.innerHTML = nLStr + dotStr
-        }, 750)
-    } else {
-        if(newsLoadingListener != null){
-            clearInterval(newsLoadingListener)
-            newsLoadingListener = null
-        }
-    }
-}
-
-// Bind retry button.
-newsErrorRetry.onclick = () => {
-    $('#newsErrorFailed').fadeOut(250, () => {
-        initNews()
-        $('#newsErrorLoading').fadeIn(250)
-    })
-}
-
-newsArticleContentScrollable.onscroll = (e) => {
-    if(e.target.scrollTop > Number.parseFloat($('.newsArticleSpacerTop').css('height'))){
-        newsContent.setAttribute('scrolled', '')
-    } else {
-        newsContent.removeAttribute('scrolled')
+    newsList.innerHTML = ''
+    for(const item of items.slice(0, 8)){
+        const el = document.createElement('div')
+        el.className = 'newsItem'
+        const date = document.createElement('div')
+        date.className = 'newsItemDate'
+        date.textContent = newsDateLabel(item.date)
+        const title = document.createElement('div')
+        title.className = 'newsItemTitle'
+        title.textContent = item.title != null ? item.title : ''
+        const text = document.createElement('div')
+        text.className = 'newsItemText'
+        text.textContent = item.text != null ? item.text : ''
+        el.appendChild(date)
+        el.appendChild(title)
+        el.appendChild(text)
+        newsList.appendChild(el)
     }
 }
 
 /**
- * Reload the news without restarting.
- * 
- * @returns {Promise.<void>} A promise which resolves when the news
- * content has finished loading and transitioning.
- */
-function reloadNews(){
-    return new Promise((resolve, reject) => {
-        $('#newsContent').fadeOut(250, () => {
-            $('#newsErrorLoading').fadeIn(250)
-            initNews().then(() => {
-                resolve()
-            })
-        })
-    })
-}
-
-let newsAlertShown = false
-
-/**
- * Show the news alert indicating there is new news.
- */
-function showNewsAlert(){
-    newsAlertShown = true
-    $(newsButtonAlert).fadeIn(250)
-}
-
-async function digestMessage(str) {
-    const msgUint8 = new TextEncoder().encode(str)
-    const hashBuffer = await crypto.subtle.digest('SHA-1', msgUint8)
-    const hashArray = Array.from(new Uint8Array(hashBuffer))
-    const hashHex = hashArray
-        .map((b) => b.toString(16).padStart(2, '0'))
-        .join('')
-    return hashHex
-}
-
-/**
- * Initialize News UI. This will load the news and prepare
- * the UI accordingly.
- * 
- * @returns {Promise.<void>} A promise which resolves when the news
- * content has finished loading and transitioning.
+ * Load news.json and fill the left pane. Never rejects - the launcher must open
+ * even when the news file is missing or the host is unreachable.
  */
 async function initNews(){
-
-    setNewsLoading(true)
-
-    const news = await loadNews()
-
-    newsArr = news?.articles || null
-
-    if(newsArr == null){
-        // News Loading Failed
-        setNewsLoading(false)
-
-        await $('#newsErrorLoading').fadeOut(250).promise()
-        await $('#newsErrorFailed').fadeIn(250).promise()
-
-    } else if(newsArr.length === 0) {
-        // No News Articles
-        setNewsLoading(false)
-
-        ConfigManager.setNewsCache({
-            date: null,
-            content: null,
-            dismissed: false
-        })
-        ConfigManager.save()
-
-        await $('#newsErrorLoading').fadeOut(250).promise()
-        await $('#newsErrorNone').fadeIn(250).promise()
-    } else {
-        // Success
-        setNewsLoading(false)
-
-        const lN = newsArr[0]
-        const cached = ConfigManager.getNewsCache()
-        let newHash = await digestMessage(lN.content)
-        let newDate = new Date(lN.date)
-        let isNew = false
-
-        if(cached.date != null && cached.content != null){
-
-            if(new Date(cached.date) >= newDate){
-
-                // Compare Content
-                if(cached.content !== newHash){
-                    isNew = true
-                    showNewsAlert()
-                } else {
-                    if(!cached.dismissed){
-                        isNew = true
-                        showNewsAlert()
-                    }
-                }
-
-            } else {
-                isNew = true
-                showNewsAlert()
-            }
-
-        } else {
-            isNew = true
-            showNewsAlert()
-        }
-
-        if(isNew){
-            ConfigManager.setNewsCache({
-                date: newDate.getTime(),
-                content: newHash,
-                dismissed: false
-            })
-            ConfigManager.save()
-        }
-
-        const switchHandler = (forward) => {
-            let cArt = parseInt(newsContent.getAttribute('article'))
-            let nxtArt = forward ? (cArt >= newsArr.length-1 ? 0 : cArt + 1) : (cArt <= 0 ? newsArr.length-1 : cArt - 1)
-    
-            displayArticle(newsArr[nxtArt], nxtArt+1)
-        }
-
-        document.getElementById('newsNavigateRight').onclick = () => { switchHandler(true) }
-        document.getElementById('newsNavigateLeft').onclick = () => { switchHandler(false) }
-        await $('#newsErrorContainer').fadeOut(250).promise()
-        displayArticle(newsArr[0], 1)
-        await $('#newsContent').fadeIn(250).promise()
+    let url
+    try {
+        url = new URL('news.json', distroManager.REMOTE_DISTRO_URL).toString()
+    } catch (err) {
+        loggerLanding.warn('Could not build the news URL.', err)
+        setNewsMessage(Lang.queryJS('landing.newsPane.failed'))
+        return
     }
-
-
-}
-
-/**
- * Add keyboard controls to the news UI. Left and right arrows toggle
- * between articles. If you are on the landing page, the up arrow will
- * open the news UI.
- */
-document.addEventListener('keydown', (e) => {
-    if(newsActive){
-        if(e.key === 'ArrowRight' || e.key === 'ArrowLeft'){
-            document.getElementById(e.key === 'ArrowRight' ? 'newsNavigateRight' : 'newsNavigateLeft').click()
+    try {
+        const res = await fetch(url + '?t=' + Date.now(), { cache: 'no-store' })
+        if(!res.ok){
+            throw new Error('HTTP ' + res.status)
         }
-        // Interferes with scrolling an article using the down arrow.
-        // Not sure of a straight forward solution at this point.
-        // if(e.key === 'ArrowDown'){
-        //     document.getElementById('newsButton').click()
-        // }
-    } else {
-        if(getCurrentView() === VIEWS.landing){
-            if(e.key === 'ArrowUp'){
-                document.getElementById('newsButton').click()
-            }
-        }
+        const data = await res.json()
+        renderNews(Array.isArray(data) ? data : data.news)
+        loggerLanding.info('News loaded.')
+    } catch (err) {
+        loggerLanding.warn('Unable to load the news.', err)
+        setNewsMessage(Lang.queryJS('landing.newsPane.failed'))
     }
-})
-
-/**
- * Display a news article on the UI.
- * 
- * @param {Object} articleObject The article meta object.
- * @param {number} index The article index.
- */
-function displayArticle(articleObject, index){
-    newsArticleTitle.innerHTML = articleObject.title
-    newsArticleTitle.href = articleObject.link
-    newsArticleAuthor.innerHTML = 'by ' + articleObject.author
-    newsArticleDate.innerHTML = articleObject.date
-    newsArticleComments.innerHTML = articleObject.comments
-    newsArticleComments.href = articleObject.commentsLink
-    newsArticleContentScrollable.innerHTML = '<div id="newsArticleContentWrapper"><div class="newsArticleSpacerTop"></div>' + articleObject.content + '<div class="newsArticleSpacerBot"></div></div>'
-    Array.from(newsArticleContentScrollable.getElementsByClassName('bbCodeSpoilerButton')).forEach(v => {
-        v.onclick = () => {
-            const text = v.parentElement.getElementsByClassName('bbCodeSpoilerText')[0]
-            text.style.display = text.style.display === 'block' ? 'none' : 'block'
-        }
-    })
-    newsNavigationStatus.innerHTML = Lang.query('ejs.landing.newsNavigationStatus', {currentPage: index, totalPages: newsArr.length})
-    newsContent.setAttribute('article', index-1)
-}
-
-/**
- * Load news information from the RSS feed specified in the
- * distribution index.
- */
-async function loadNews(){
-
-    const distroData = await DistroAPI.getDistribution()
-    if(!distroData.rawDistribution.rss) {
-        loggerLanding.debug('No RSS feed provided.')
-        return null
-    }
-
-    const promise = new Promise((resolve, reject) => {
-        
-        const newsFeed = distroData.rawDistribution.rss
-        const newsHost = new URL(newsFeed).origin + '/'
-        $.ajax({
-            url: newsFeed,
-            success: (data) => {
-                const items = $(data).find('item')
-                const articles = []
-
-                for(let i=0; i<items.length; i++){
-                // JQuery Element
-                    const el = $(items[i])
-
-                    // Resolve date.
-                    const date = new Date(el.find('pubDate').text()).toLocaleDateString('en-US', {month: 'short', day: 'numeric', year: 'numeric', hour: 'numeric', minute: 'numeric'})
-
-                    // Resolve comments.
-                    let comments = el.find('slash\\:comments').text() || '0'
-                    comments = comments + ' Comment' + (comments === '1' ? '' : 's')
-
-                    // Fix relative links in content.
-                    let content = el.find('content\\:encoded').text()
-                    let regex = /src="(?!http:\/\/|https:\/\/)(.+?)"/g
-                    let matches
-                    while((matches = regex.exec(content))){
-                        content = content.replace(`"${matches[1]}"`, `"${newsHost + matches[1]}"`)
-                    }
-
-                    let link   = el.find('link').text()
-                    let title  = el.find('title').text()
-                    let author = el.find('dc\\:creator').text()
-
-                    // Generate article.
-                    articles.push(
-                        {
-                            link,
-                            title,
-                            date,
-                            author,
-                            content,
-                            comments,
-                            commentsLink: link + '#comments'
-                        }
-                    )
-                }
-                resolve({
-                    articles
-                })
-            },
-            timeout: 2500
-        }).catch(err => {
-            resolve({
-                articles: null
-            })
-        })
-    })
-
-    return await promise
 }
