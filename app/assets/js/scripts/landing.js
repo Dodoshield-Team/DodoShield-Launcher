@@ -200,7 +200,7 @@ function updateSelectedAccount(authUser){
             username = authUser.displayName
         }
         if(authUser.uuid != null){
-            document.getElementById('avatarContainer').style.backgroundImage = `url('https://visage.surgeplay.com/bust/256/${authUser.uuid}')`
+            document.getElementById('avatarContainer').style.backgroundImage = `url('https://visage.surgeplay.com/face/256/${authUser.uuid}')`
         }
     }
     user_text.innerHTML = username

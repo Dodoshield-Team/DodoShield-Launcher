@@ -2594,8 +2594,11 @@ input:checked + .toggleSwitchSlider:before {
     border-radius: 12px;
     border: 1px solid var(--dodo-line);
     background-color: var(--dodo-panel);
+    /* Flat face render: it fills the square exactly, unlike the bust render,
+       whose transparent corners showed as stray pixels around the head. */
     background-size: cover;
     background-position: center;
+    image-rendering: pixelated;
 }
 
 #avatarOverlay {
